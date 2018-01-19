@@ -31,6 +31,7 @@
 #include <QMenu>
 #include <QTimer>
 #include <QBoxLayout>
+#include <QWindow>
 #include <utility>
 
 
@@ -49,8 +50,8 @@
 
 namespace rviz
 {
-RenderPanel::RenderPanel(QWidget* parent)
-  : QWidget(parent)
+RenderPanel::RenderPanel(QtOgreRenderWindow* render_window, QObject* parent)
+  : QObject(parent)
   , mouse_x_(0)
   , mouse_y_(0)
   , focus_on_mouse_move_(true)
@@ -59,14 +60,11 @@ RenderPanel::RenderPanel(QWidget* parent)
   , context_menu_visible_(false)
   , view_controller_(nullptr)
   , default_camera_(nullptr)
-  , render_window_(new QtWidgetOgreRenderWindow(parent))
+  , render_window_(render_window)
 {
   setFocusPolicy(Qt::WheelFocus);
   render_window_->setFocus(Qt::OtherFocusReason);
   setMouseTracking(true);
-  auto layout = new QBoxLayout(QBoxLayout::LeftToRight, this);
-  layout->addWidget(dynamic_cast<QtWidgetOgreRenderWindow*>(render_window_));
-
   render_window_->setKeyPressEventCallback([this](QKeyEvent* event) { this->onKeyPressEvent(event); });
   render_window_->setWheelEventCallback([this](QWheelEvent* event) { this->onWheelEvent(event); });
   render_window_->setLeaveEventCallack([this](QEvent* event) { this->onLeaveEvent(event); });
@@ -222,6 +220,36 @@ bool RenderPanel::getFocusOnMouseMove() const
 void RenderPanel::setFocusOnMouseMove(bool enabled)
 {
   focus_on_mouse_move_ = enabled;
+}
+
+void RenderPanel::setCursor(const QCursor& cursor)
+{
+  render_window_->setCursor(cursor);
+}
+
+double RenderPanel::getWindowPixelRatio()
+{
+#if 0
+  QWidget* widget = dynamic_cast<QWidget*>(render_window_);
+  if (widget) {
+    QWindow* window = widget->windowHandle();
+    if (window) {
+      return window->devicePixelRatio();
+    }
+  }
+#endif
+
+  return 1.0;
+}
+
+QPoint RenderPanel::mapFromGlobal(const QPoint& point) const
+{
+  return render_window_->mapFromGlobal(point);
+}
+
+QPoint RenderPanel::mapToGlobal(const QPoint& point) const
+{
+  return render_window_->mapToGlobal(point);
 }
 
 } // namespace rviz

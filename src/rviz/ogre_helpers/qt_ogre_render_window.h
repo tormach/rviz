@@ -111,6 +111,7 @@ public:
 
   virtual void setFocus(Qt::FocusReason reason) = 0;
   virtual QPoint mapFromGlobal(const QPoint&) const = 0;
+  virtual QPoint mapToGlobal(const QPoint&) const = 0;
   virtual void setCursor(const QCursor&) = 0;
 
   void setKeyPressEventCallback(std::function<void(QKeyEvent*)> function)
@@ -127,6 +128,8 @@ public:
   {
     leave_event_callback_ = function;
   }
+
+  virtual QRect rect() const = 0;
 
 protected:
   void emitKeyPressEvent(QKeyEvent* event)

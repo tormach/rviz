@@ -528,15 +528,11 @@ void VisualizationManager::handleMouseEvent(const ViewportMouseEvent& vme)
   if (current_tool)
   {
     ViewportMouseEvent _vme = vme;
-    QWindow* window = vme.panel->windowHandle();
-    if (window)
-    {
-      double pixel_ratio = window->devicePixelRatio();
-      _vme.x = static_cast<int>(pixel_ratio * _vme.x);
-      _vme.y = static_cast<int>(pixel_ratio * _vme.y);
-      _vme.last_x = static_cast<int>(pixel_ratio * _vme.last_x);
-      _vme.last_y = static_cast<int>(pixel_ratio * _vme.last_y);
-    }
+    double pixel_ratio = vme.panel->getWindowPixelRatio();
+    _vme.x = static_cast<int>(pixel_ratio * _vme.x);
+    _vme.y = static_cast<int>(pixel_ratio * _vme.y);
+    _vme.last_x = static_cast<int>(pixel_ratio * _vme.last_x);
+    _vme.last_y = static_cast<int>(pixel_ratio * _vme.last_y);
     flags = current_tool->processMouseEvent(_vme);
     vme.panel->setCursor(current_tool->getCursor());
   }

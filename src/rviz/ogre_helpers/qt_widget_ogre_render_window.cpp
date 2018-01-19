@@ -237,6 +237,11 @@ QPoint QtWidgetOgreRenderWindow::mapFromGlobal(const QPoint& point) const
   return QWidget::mapFromGlobal(point);
 }
 
+QPoint QtWidgetOgreRenderWindow::mapToGlobal(const QPoint& point) const
+{
+  return QWidget::mapToGlobal(point);
+}
+
 void QtWidgetOgreRenderWindow::setCursor(const QCursor& cursor)
 {
   QWidget::setCursor(cursor);
@@ -255,6 +260,11 @@ void QtWidgetOgreRenderWindow::wheelEvent(QWheelEvent* event)
 void QtWidgetOgreRenderWindow::leaveEvent(QEvent* event)
 {
   emitLeaveEvent(event);
+}
+
+QRect QtWidgetOgreRenderWindow::rect() const
+{
+  return QWidget::rect();
 }
 
 void QtWidgetOgreRenderWindow::setCameraAspectRatio()

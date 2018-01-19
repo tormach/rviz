@@ -72,12 +72,12 @@ class QtOgreRenderWindow;
  * the DisplayContext (which further forwards them to the active
  * Tool, etc.)
  */
-class RenderPanel : public QWidget, public Ogre::SceneManager::Listener
+class RenderPanel : public QObject, public Ogre::SceneManager::Listener
 {
   Q_OBJECT
 public:
   /** Constructor.  Ogre::Root::createRenderWindow() is called within. */
-  RenderPanel(QWidget* parent = nullptr);
+  RenderPanel(QtOgreRenderWindow* render_window, QObject* parent = nullptr);
   ~RenderPanel() override;
 
   /** This sets up the Ogre::Camera for this widget. */
@@ -137,6 +137,11 @@ public:
 
   /** Set to true if moving the mouse within this widget should set keyboard focus, default true */
   void setFocusOnMouseMove(bool enabled);
+
+  void setCursor(const QCursor& cursor);
+  double getWindowPixelRatio();
+  QPoint mapFromGlobal(const QPoint& point) const;
+  QPoint mapToGlobal(const QPoint& point) const;
 
 protected:
   // Override from QWidget
