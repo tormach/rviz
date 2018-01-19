@@ -62,10 +62,14 @@ RenderPanel::RenderPanel(QWidget* parent)
   , render_window_(new QtWidgetOgreRenderWindow(parent))
 {
   setFocusPolicy(Qt::WheelFocus);
-  setFocus(Qt::OtherFocusReason);
+  render_window_->setFocus(Qt::OtherFocusReason);
   setMouseTracking(true);
   auto layout = new QBoxLayout(QBoxLayout::LeftToRight, this);
   layout->addWidget(dynamic_cast<QtWidgetOgreRenderWindow*>(render_window_));
+
+  render_window_->setKeyPressEventCallback([this](QKeyEvent* event) { this->onKeyPressEvent(event); });
+  render_window_->setWheelEventCallback([this](QWheelEvent* event) { this->onWheelEvent(event); });
+  render_window_->setLeaveEventCallack([this](QEvent* event) { this->onLeaveEvent(event); });
 }
 
 RenderPanel::~RenderPanel()
@@ -97,9 +101,9 @@ void RenderPanel::initialize(Ogre::SceneManager* scene_manager, DisplayContext* 
   render_window_->setCamera(default_camera_);
 }
 
-void RenderPanel::leaveEvent(QEvent* /*event*/)
+void RenderPanel::onLeaveEvent(QEvent* /*event*/)
 {
-  setCursor(Qt::ArrowCursor);
+  render_window_->setCursor(Qt::ArrowCursor);
   if (context_)
   {
     context_->setStatus("");
@@ -118,7 +122,7 @@ void RenderPanel::onRenderWindowMouseEvents(QMouseEvent* event)
   {
     if (focus_on_mouse_move_)
     {
-      setFocus(Qt::MouseFocusReason);
+      render_window_->setFocus(Qt::MouseFocusReason);
     }
 
     ViewportMouseEvent vme(this, render_window_->getViewport(), event, last_x, last_y);
@@ -127,7 +131,7 @@ void RenderPanel::onRenderWindowMouseEvents(QMouseEvent* event)
   }
 }
 
-void RenderPanel::wheelEvent(QWheelEvent* event)
+void RenderPanel::onWheelEvent(QWheelEvent* event)
 {
   int last_x = mouse_x_;
   int last_y = mouse_y_;
@@ -143,7 +147,7 @@ void RenderPanel::wheelEvent(QWheelEvent* event)
   }
 }
 
-void RenderPanel::keyPressEvent(QKeyEvent* event)
+void RenderPanel::onKeyPressEvent(QKeyEvent* event)
 {
   if (context_)
   {

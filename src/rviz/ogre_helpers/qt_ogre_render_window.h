@@ -56,6 +56,10 @@ namespace rviz
 class QtOgreRenderWindow : public Ogre::RenderTargetListener
 {
 public:
+  explicit QtOgreRenderWindow();
+
+  virtual ~QtOgreRenderWindow();
+
   /**
    * Set a callback which is called before each render
    * @param func The callback functor
@@ -104,6 +108,46 @@ public:
   ////// after-constructor creation of Ogre::RenderWindow.
   virtual void setOverlaysEnabled(bool overlays_enabled) = nullptr;
   virtual void setBackgroundColor(Ogre::ColourValue color) = nullptr;
+
+  virtual void setFocus(Qt::FocusReason reason) = 0;
+  virtual QPoint mapFromGlobal(const QPoint&) const = 0;
+  virtual void setCursor(const QCursor&) = 0;
+
+  void setKeyPressEventCallback(std::function<void(QKeyEvent*)> function)
+  {
+    key_press_event_callback_ = function;
+  }
+
+  void setWheelEventCallback(std::function<void(QWheelEvent*)> function)
+  {
+    wheel_event_callback_ = function;
+  }
+
+  void setLeaveEventCallack(std::function<void(QEvent*)> function)
+  {
+    leave_event_callback_ = function;
+  }
+
+protected:
+  void emitKeyPressEvent(QKeyEvent* event)
+  {
+    key_press_event_callback_(event);
+  }
+
+  void emitWheelEvent(QWheelEvent* event)
+  {
+    wheel_event_callback_(event);
+  }
+
+  void emitLeaveEvent(QEvent* event)
+  {
+    leave_event_callback_(event);
+  }
+
+private:
+  std::function<void(QKeyEvent*)> key_press_event_callback_;
+  std::function<void(QWheelEvent*)> wheel_event_callback_;
+  std::function<void(QEvent*)> leave_event_callback_;
 };
 
 } // namespace rviz

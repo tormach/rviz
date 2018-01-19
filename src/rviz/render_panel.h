@@ -164,12 +164,12 @@ protected:
     onRenderWindowMouseEvents(event);
   }
 
-  void leaveEvent(QEvent* event) override;
+  void onLeaveEvent(QEvent* event) override;
 
   /// Called when there is a mouse-wheel event.
-  void wheelEvent(QWheelEvent* event) override;
+  void onWheelEvent(QWheelEvent* event) override;
 
-  void keyPressEvent(QKeyEvent* event) override;
+  void onKeyPressEvent(QKeyEvent* event) override;
 
   // Mouse handling
   int mouse_x_;              ///< X position of the last mouse event

@@ -27,3 +27,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include "qt_ogre_render_window.h"
+
+rviz::QtOgreRenderWindow::QtOgreRenderWindow()
+{
+}
+
+rviz::QtOgreRenderWindow::~QtOgreRenderWindow()
+{
+}

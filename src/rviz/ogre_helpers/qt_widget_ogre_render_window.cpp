@@ -227,7 +227,37 @@ void QtOgreRenderWindow::setBackgroundColor(Ogre::ColourValue background_color)
   }
 }
 
-void QtOgreRenderWindow::setCameraAspectRatio()
+void QtWidgetOgreRenderWindow::setFocus(Qt::FocusReason reason)
+{
+  QWidget::setFocus(reason);
+}
+
+QPoint QtWidgetOgreRenderWindow::mapFromGlobal(const QPoint& point) const
+{
+  return QWidget::mapFromGlobal(point);
+}
+
+void QtWidgetOgreRenderWindow::setCursor(const QCursor& cursor)
+{
+  QWidget::setCursor(cursor);
+}
+
+void QtWidgetOgreRenderWindow::keyPressEvent(QKeyEvent* event)
+{
+  emitKeyPressEvent(event);
+}
+
+void QtWidgetOgreRenderWindow::wheelEvent(QWheelEvent* event)
+{
+  emitWheelEvent(event);
+}
+
+void QtWidgetOgreRenderWindow::leaveEvent(QEvent* event)
+{
+  emitLeaveEvent(event);
+}
+
+void QtWidgetOgreRenderWindow::setCameraAspectRatio()
 {
   if (camera_)
   {
