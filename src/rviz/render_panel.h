@@ -63,6 +63,7 @@ namespace rviz
 class Display;
 class DisplayContext;
 class ViewController;
+class QtOgreRenderWindow;
 
 /**
  * A widget which shows an OGRE-rendered scene in RViz.
@@ -71,7 +72,7 @@ class ViewController;
  * the DisplayContext (which further forwards them to the active
  * Tool, etc.)
  */
-class RenderPanel : public QtOgreRenderWindow, public Ogre::SceneManager::Listener
+class RenderPanel : public QWidget, public Ogre::SceneManager::Listener
 {
   Q_OBJECT
 public:
@@ -90,6 +91,32 @@ public:
   ViewController* getViewController()
   {
     return view_controller_;
+  }
+
+  /// Pass through render window functions
+  Ogre::Viewport* getViewport() const
+  {
+    return render_window_->getViewport();
+  }
+  Ogre::RenderWindow* getRenderWindow() const
+  {
+    return render_window_->getRenderWindow();
+  }
+  Ogre::Camera* getCamera() const
+  {
+    return render_window_->getCamera();
+  }
+  void setAutoRender(bool auto_render)
+  {
+    render_window_->setAutoRender(auto_render);
+  }
+  void setBackgroundColor(Ogre::ColourValue color)
+  {
+    render_window_->setBackgroundColor(color);
+  }
+  void setOverlaysEnabled(bool enabled)
+  {
+    render_window_->setOverlaysEnabled(enabled);
   }
 
   /** @brief Set the ViewController which should control the camera
@@ -168,6 +195,7 @@ private Q_SLOTS:
 
 private:
   Ogre::Camera* default_camera_; ///< A default camera created in initialize().
+  QtOgreRenderWindow* render_window_;
 };
 
 } // namespace rviz

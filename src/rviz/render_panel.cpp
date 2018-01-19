@@ -30,11 +30,14 @@
 #include <QApplication>
 #include <QMenu>
 #include <QTimer>
+#include <QBoxLayout>
 #include <utility>
 
 
 #include <OGRE/OgreSceneManager.h>
 #include <OGRE/OgreCamera.h>
+
+#include <rviz/ogre_helpers/qt_widget_ogre_render_window.h>
 
 #include <rviz/display.h>
 #include <rviz/view_controller.h>
@@ -47,19 +50,22 @@
 namespace rviz
 {
 RenderPanel::RenderPanel(QWidget* parent)
-  : QtOgreRenderWindow(parent)
+  : QWidget(parent)
   , mouse_x_(0)
   , mouse_y_(0)
   , focus_on_mouse_move_(true)
   , context_(nullptr)
   , scene_manager_(nullptr)
   , context_menu_visible_(false)
-  , default_camera_(nullptr)
   , view_controller_(nullptr)
+  , default_camera_(nullptr)
+  , render_window_(new QtWidgetOgreRenderWindow(parent))
 {
   setFocusPolicy(Qt::WheelFocus);
   setFocus(Qt::OtherFocusReason);
   setMouseTracking(true);
+  auto layout = new QBoxLayout(QBoxLayout::LeftToRight, this);
+  layout->addWidget(dynamic_cast<QtWidgetOgreRenderWindow*>(render_window_));
 }
 
 RenderPanel::~RenderPanel()
@@ -88,7 +94,7 @@ void RenderPanel::initialize(Ogre::SceneManager* scene_manager, DisplayContext* 
   default_camera_->setPosition(0, 10, 15);
   default_camera_->lookAt(0, 0, 0);
 
-  setCamera(default_camera_);
+  render_window_->setCamera(default_camera_);
 }
 
 void RenderPanel::leaveEvent(QEvent* /*event*/)
@@ -115,7 +121,7 @@ void RenderPanel::onRenderWindowMouseEvents(QMouseEvent* event)
       setFocus(Qt::MouseFocusReason);
     }
 
-    ViewportMouseEvent vme(this, getViewport(), event, last_x, last_y);
+    ViewportMouseEvent vme(this, render_window_->getViewport(), event, last_x, last_y);
     context_->handleMouseEvent(vme);
     event->accept();
   }
@@ -131,7 +137,7 @@ void RenderPanel::wheelEvent(QWheelEvent* event)
 
   if (context_)
   {
-    ViewportMouseEvent vme(this, getViewport(), event, last_x, last_y);
+    ViewportMouseEvent vme(this, render_window_->getViewport(), event, last_x, last_y);
     context_->handleMouseEvent(vme);
     event->accept();
   }
@@ -151,12 +157,12 @@ void RenderPanel::setViewController(ViewController* controller)
 
   if (view_controller_)
   {
-    setCamera(view_controller_->getCamera());
+    render_window_->setCamera(view_controller_->getCamera());
     view_controller_->activate();
   }
   else
   {
-    setCamera(nullptr);
+    render_window_->setCamera(nullptr);
   }
 }
 
@@ -200,7 +206,7 @@ void RenderPanel::sceneManagerDestroyed(Ogre::SceneManager* destroyed_scene_mana
   {
     scene_manager_ = nullptr;
     default_camera_ = nullptr;
-    setCamera(nullptr);
+    render_window_->setCamera(nullptr);
   }
 }
 
