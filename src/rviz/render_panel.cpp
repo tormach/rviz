@@ -53,9 +53,9 @@ RenderPanel::RenderPanel(QWidget* parent)
   , focus_on_mouse_move_(true)
   , context_(nullptr)
   , scene_manager_(nullptr)
-  , view_controller_(nullptr)
   , context_menu_visible_(false)
   , default_camera_(nullptr)
+  , view_controller_(nullptr)
 {
   setFocusPolicy(Qt::WheelFocus);
   setFocus(Qt::OtherFocusReason);
