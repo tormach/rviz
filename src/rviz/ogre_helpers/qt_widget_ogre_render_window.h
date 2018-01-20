@@ -1,7 +1,10 @@
 #ifndef QTWIDGETOGRERENDERWINDOW_H
 #define QTWIDGETOGRERENDERWINDOW_H
+
+#include <QPaintEngine>
+#include <QWidget>
+
 #include "qt_ogre_render_window.h"
-#include "render_widget.h"
 
 namespace rviz
 {
@@ -17,7 +20,7 @@ class QtWidgetOgreRenderWindow : public QWidget, public QtOgreRenderWindow
 
 public:
   /** Constructor.
-    @param parent The parent wxWindow component.
+    @param parent The parent component.
    */
   QtWidgetOgreRenderWindow(QWidget* parent = nullptr);
 
@@ -43,7 +46,6 @@ public:
   void leaveEvent(QEvent* event);
 
   QRect rect() const;
-  void updateScene();
 
 protected:
   virtual void moveEvent(QMoveEvent* event);
@@ -57,9 +59,7 @@ protected:
   }
 #endif
 
-  RenderSystem* render_system_;
-
-  QFrame* render_frame;
+  void updateScene();
 };
 
 } // namespace rviz

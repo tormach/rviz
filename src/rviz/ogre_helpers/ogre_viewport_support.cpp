@@ -20,7 +20,8 @@
 namespace rviz
 {
 OgreViewportSupport::OgreViewportSupport()
-  : render_window_(nullptr)
+  : render_system_(RenderSystem::get())
+  , render_window_(nullptr)
   , viewport_(nullptr)
   , ogre_root_(RenderSystem::get()->root())
   , ortho_scale_(1.0f)
