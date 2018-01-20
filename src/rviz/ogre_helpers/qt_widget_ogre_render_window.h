@@ -1,6 +1,7 @@
 #ifndef QTWIDGETOGRERENDERWINDOW_H
 #define QTWIDGETOGRERENDERWINDOW_H
 #include "qt_ogre_render_window.h"
+#include "render_widget.h"
 
 namespace rviz
 {
@@ -10,7 +11,7 @@ namespace rviz
  *  the guts replaced by new RenderSystem and RenderWidget classes
  *  inspired by the initialization sequence of Gazebo's renderer.
  */
-class QtWidgetOgreRenderWindow : public RenderWidget, public QtOgreRenderWindow
+class QtWidgetOgreRenderWindow : public QWidget, public QtOgreRenderWindow
 {
   Q_OBJECT
 
@@ -23,9 +24,6 @@ public:
   /** Destructor.  */
   virtual ~QtWidgetOgreRenderWindow();
 
-  virtual void setPreRenderCallback(boost::function<void()> func);
-  virtual void setPostRenderCallback(boost::function<void()> func);
-
   /** Overrides the default implementation.
     This override is here for convenience. Returns a symbolic 320x240px size.
     @return A size of 320x240 (just a symbolic 4:3 size).
@@ -34,36 +32,6 @@ public:
   {
     return QSize(320, 240);
   }
-
-  Ogre::Viewport* getViewport() const;
-
-  Ogre::RenderWindow* getRenderWindow()
-  {
-    return render_window_;
-  }
-
-  void setCamera(Ogre::Camera* camera);
-
-  Ogre::Camera* getCamera() const
-  {
-    return camera_;
-  }
-
-  void setOrthoScale(float scale);
-
-  bool enableStereo(bool enable);
-
-  void setupStereo();
-
-  void setAutoRender(bool auto_render)
-  {
-    auto_render_ = auto_render;
-  }
-
-  ////// Functions mimicked from Ogre::Viewport to satisfy timing of
-  ////// after-constructor creation of Ogre::RenderWindow.
-  void setOverlaysEnabled(bool overlays_enabled);
-  void setBackgroundColor(Ogre::ColourValue color);
 
   void setFocus(Qt::FocusReason reason);
   QPoint mapFromGlobal(const QPoint& point) const;
@@ -75,47 +43,23 @@ public:
   void leaveEvent(QEvent* event);
 
   QRect rect() const;
+  void updateScene();
 
 protected:
-  virtual void paintEvent(QPaintEvent* e) override;
-  virtual void resizeEvent(QResizeEvent* event) override;
+  virtual void moveEvent(QMoveEvent* event);
+  virtual void paintEvent(QPaintEvent* event);
+  virtual void resizeEvent(QResizeEvent* event);
 
-  // When stereo is enabled, these are called before/after rendering each
-  // viewport.
-  virtual void preViewportUpdate(const Ogre::RenderTargetViewportEvent& evt) override;
-  virtual void postViewportUpdate(const Ogre::RenderTargetViewportEvent& evt) override;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+  QPaintEngine* paintEngine() const
+  {
+    return 0;
+  }
+#endif
 
-  /**
-   * Sets the aspect ratio on the camera
-   */
-  void setCameraAspectRatio();
+  RenderSystem* render_system_;
 
-  /**
-   * prepare a viewport's camera for stereo rendering.
-   * This should only be called from StereoRenderTargetListener
-   */
-  void prepareStereoViewport(Ogre::Viewport*);
-
-  Ogre::Viewport* viewport_;
-
-  Ogre::Root* ogre_root_;
-
-  boost::function<void()> pre_render_callback_;  ///< Functor which is called before each render
-  boost::function<void()> post_render_callback_; ///< Functor which is called after each render
-
-  float ortho_scale_;
-  bool auto_render_;
-
-  Ogre::Camera* camera_;
-  bool overlays_enabled_;
-  Ogre::ColourValue background_color_;
-
-  // stereo rendering
-  bool stereo_enabled_;   // true if we were asked to render stereo
-  bool rendering_stereo_; // true if we are actually rendering stereo
-  Ogre::Camera* left_camera_;
-  Ogre::Camera* right_camera_;
-  Ogre::Viewport* right_viewport_;
+  QFrame* render_frame;
 };
 
 } // namespace rviz

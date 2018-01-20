@@ -3,6 +3,9 @@
 #include "render_system.h"
 #include <rviz/ogre_helpers/version_check.h>
 
+#include <QApplication>
+#include <QWindow>
+
 #include <OGRE/OgreRoot.h>
 #include <OGRE/OgreViewport.h>
 #include <OGRE/OgreCamera.h>
@@ -21,210 +24,53 @@
 
 namespace rviz
 {
-QtOgreRenderWindow::QtOgreRenderWindow(QWidget* parent)
-  : RenderWidget(RenderSystem::get(), parent)
-  , viewport_(nullptr)
-  , ogre_root_(RenderSystem::get()->root())
-  , ortho_scale_(1.0f)
-  , auto_render_(true)
-  , camera_(nullptr)
-  , overlays_enabled_(true)                     // matches the default of Ogre::Viewport.
-  , background_color_(Ogre::ColourValue::Black) // matches the default of Ogre::Viewport.
-  , stereo_enabled_(false)
-  , rendering_stereo_(false)
-  , left_camera_(nullptr)
-  , right_camera_(nullptr)
-  , right_viewport_(nullptr)
+QtWidgetOgreRenderWindow::QtWidgetOgreRenderWindow(QWidget* parent)
+  : QWidget(parent), render_system_(RenderSystem::get())
 {
-  render_window_->setVisible(true);
-  render_window_->setAutoUpdated(true);
+  setAttribute(Qt::WA_OpaquePaintEvent, true);
+  setAttribute(Qt::WA_PaintOnScreen, true);
 
-  viewport_ = render_window_->addViewport(camera_);
-  viewport_->setOverlaysEnabled(overlays_enabled_);
-  viewport_->setBackgroundColour(background_color_);
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+  // It is not clear to me why, but having this frame sub-widget
+  // inside the main widget makes an important difference (under X at
+  // least).  Without the frame and using this widget's winId()
+  // below causes trouble when using RenderWidget as a child
+  // widget.  The frame graphics are completely covered up by the 3D
+  // render, so using it does not affect the appearance at all.
+  this->renderFrame = new QFrame;
+  this->renderFrame->setLineWidth(1);
+  this->renderFrame->setFrameShadow(QFrame::Sunken);
+  this->renderFrame->setFrameShape(QFrame::Box);
+  this->renderFrame->show();
 
-#if OGRE_STEREO_ENABLE
-  viewport_->setDrawBuffer(Ogre::CBT_BACK);
-#endif
-  enableStereo(true);
-
-  setCameraAspectRatio();
-}
-
-QtOgreRenderWindow::~QtOgreRenderWindow()
-{
-  enableStereo(false); // free stereo resources
-}
-
-//------------------------------------------------------------------------------
-bool QtOgreRenderWindow::enableStereo(bool enable)
-{
-  bool was_enabled = stereo_enabled_;
-  stereo_enabled_ = enable;
-  setupStereo();
-  return was_enabled;
-}
-
-void QtOgreRenderWindow::setupStereo()
-{
-  bool render_stereo = stereo_enabled_ && RenderSystem::get()->isStereoSupported();
-
-  if (render_stereo == rendering_stereo_)
-    return;
-
-  rendering_stereo_ = render_stereo;
-
-  if (rendering_stereo_)
-  {
-    right_viewport_ = render_window_->addViewport(nullptr, 1);
-#if OGRE_STEREO_ENABLE
-    right_viewport_->setDrawBuffer(Ogre::CBT_BACK_RIGHT);
-    viewport_->setDrawBuffer(Ogre::CBT_BACK_LEFT);
+  QVBoxLayout* mainLayout = new QVBoxLayout;
+  mainLayout->setContentsMargins(0, 0, 0, 0);
+  mainLayout->addWidget(this->renderFrame);
+  this->setLayout(mainLayout);
 #endif
 
-    setOverlaysEnabled(overlays_enabled_);
-    setBackgroundColor(background_color_);
-    if (camera_)
-      setCamera(camera_);
-
-    // addListener causes preViewportUpdate() to be called when rendering.
-    render_window_->addListener(this);
-  }
-  else
-  {
-    render_window_->removeListener(this);
-    render_window_->removeViewport(1);
-    right_viewport_ = nullptr;
-
-#if OGRE_STEREO_ENABLE
-    viewport_->setDrawBuffer(Ogre::CBT_BACK);
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+  rviz::RenderSystem::WindowIDType win_id = this->renderFrame->winId();
+#else
+  rviz::RenderSystem::WindowIDType win_id = this->winId();
 #endif
+  QApplication::flush();
 
-    if (left_camera_)
-      left_camera_->getSceneManager()->destroyCamera(left_camera_);
-    left_camera_ = nullptr;
-    if (right_camera_)
-      right_camera_->getSceneManager()->destroyCamera(right_camera_);
-    right_camera_ = nullptr;
-  }
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+  QApplication::syncX();
+  double pixel_ratio = 1.0;
+#else
+  QWindow* window = windowHandle();
+  double pixel_ratio = window ? window->devicePixelRatio() : 1.0;
+#endif
+  render_window_ = render_system_->makeRenderWindow(win_id, static_cast<quint32>(width()),
+                                                    static_cast<quint32>(height()), pixel_ratio);
+
+  OgreViewportSupport::initialize();
 }
 
-// this is called just before rendering either viewport when stereo is enabled.
-void QtOgreRenderWindow::preViewportUpdate(const Ogre::RenderTargetViewportEvent& evt)
+QtWidgetOgreRenderWindow::~QtWidgetOgreRenderWindow()
 {
-  Ogre::Viewport* viewport = evt.source;
-
-  const Ogre::Vector2& offset = camera_->getFrustumOffset();
-  const Ogre::Vector3 pos = camera_->getPosition();
-  const Ogre::Vector3 right = camera_->getRight();
-  const Ogre::Vector3 up = camera_->getUp();
-
-  if (viewport == right_viewport_)
-  {
-    if (camera_->getProjectionType() != Ogre::PT_PERSPECTIVE || !right_camera_)
-    {
-      viewport->setCamera(camera_);
-      return;
-    }
-
-    Ogre::Vector3 newpos = pos + right * offset.x + up * offset.y;
-
-    right_camera_->synchroniseBaseSettingsWith(camera_);
-    right_camera_->setFrustumOffset(-offset);
-    right_camera_->setPosition(newpos);
-    viewport->setCamera(right_camera_);
-  }
-  else if (viewport == viewport_)
-  {
-    if (camera_->getProjectionType() != Ogre::PT_PERSPECTIVE || !left_camera_)
-    {
-      viewport->setCamera(camera_);
-      return;
-    }
-
-    Ogre::Vector3 newpos = pos - right * offset.x - up * offset.y;
-
-    left_camera_->synchroniseBaseSettingsWith(camera_);
-    left_camera_->setFrustumOffset(offset);
-    left_camera_->setPosition(newpos);
-    viewport->setCamera(left_camera_);
-  }
-  else
-  {
-    ROS_WARN("Begin rendering to unknown viewport.");
-  }
-}
-
-void QtOgreRenderWindow::postViewportUpdate(const Ogre::RenderTargetViewportEvent& evt)
-{
-  Ogre::Viewport* viewport = evt.source;
-
-  if (viewport == right_viewport_)
-  {
-    // nothing to do here
-  }
-  else if (viewport == viewport_)
-  {
-    viewport->setCamera(camera_);
-  }
-  else
-  {
-    ROS_WARN("End rendering to unknown viewport.");
-  }
-
-  if (!right_camera_->isCustomProjectionMatrixEnabled())
-  {
-    right_camera_->synchroniseBaseSettingsWith(camera_);
-    right_camera_->setFrustumOffset(-camera_->getFrustumOffset());
-  }
-  right_viewport_->setCamera(right_camera_);
-}
-
-Ogre::Viewport* QtOgreRenderWindow::getViewport() const
-{
-  return viewport_;
-}
-
-void QtOgreRenderWindow::setCamera(Ogre::Camera* camera)
-{
-  if (camera)
-  {
-    camera_ = camera;
-    viewport_->setCamera(camera);
-
-    setCameraAspectRatio();
-
-    if (camera_ && rendering_stereo_ && !left_camera_)
-    {
-      left_camera_ = camera_->getSceneManager()->createCamera(camera_->getName() + "-left");
-    }
-    if (camera_ && rendering_stereo_ && !right_camera_)
-    {
-      right_camera_ = camera_->getSceneManager()->createCamera(camera_->getName() + "-right");
-    }
-
-    update();
-  }
-}
-
-void QtOgreRenderWindow::setOverlaysEnabled(bool overlays_enabled)
-{
-  overlays_enabled_ = overlays_enabled;
-  viewport_->setOverlaysEnabled(overlays_enabled);
-  if (right_viewport_)
-  {
-    right_viewport_->setOverlaysEnabled(overlays_enabled);
-  }
-}
-
-void QtOgreRenderWindow::setBackgroundColor(Ogre::ColourValue background_color)
-{
-  background_color_ = background_color;
-  viewport_->setBackgroundColour(background_color);
-  if (right_viewport_)
-  {
-    right_viewport_->setBackgroundColour(background_color);
-  }
 }
 
 void QtWidgetOgreRenderWindow::setFocus(Qt::FocusReason reason)
@@ -267,42 +113,19 @@ QRect QtWidgetOgreRenderWindow::rect() const
   return QWidget::rect();
 }
 
-void QtWidgetOgreRenderWindow::setCameraAspectRatio()
+void QtWidgetOgreRenderWindow::updateScene()
 {
-  if (camera_)
+  QWidget::update();
+}
+
+void QtWidgetOgreRenderWindow::moveEvent(QMoveEvent* event)
+{
+  QWidget::moveEvent(event);
+
+  if (event->isAccepted() && render_window_)
   {
-    camera_->setAspectRatio(Ogre::Real(width()) / Ogre::Real(height()));
-    if (right_camera_)
-    {
-      right_camera_->setAspectRatio(Ogre::Real(width()) / Ogre::Real(height()));
-    }
-
-    if (camera_->getProjectionType() == Ogre::PT_ORTHOGRAPHIC)
-    {
-      Ogre::Matrix4 proj;
-      buildScaledOrthoMatrix(proj, -width() / ortho_scale_ / 2, width() / ortho_scale_ / 2,
-                             -height() / ortho_scale_ / 2, height() / ortho_scale_ / 2,
-                             camera_->getNearClipDistance(), camera_->getFarClipDistance());
-      camera_->setCustomProjectionMatrix(true, proj);
-    }
+    render_window_->windowMovedOrResized();
   }
-}
-
-void QtOgreRenderWindow::setOrthoScale(float scale)
-{
-  ortho_scale_ = scale;
-
-  setCameraAspectRatio();
-}
-
-void QtOgreRenderWindow::setPreRenderCallback(boost::function<void()> func)
-{
-  pre_render_callback_ = std::move(func);
-}
-
-void QtOgreRenderWindow::setPostRenderCallback(boost::function<void()> func)
-{
-  post_render_callback_ = std::move(func);
 }
 
 //------------------------------------------------------------------------------
@@ -332,9 +155,17 @@ void QtOgreRenderWindow::paintEvent(QPaintEvent* /*e*/)
 }
 
 //------------------------------------------------------------------------------
-void QtOgreRenderWindow::resizeEvent(QResizeEvent* event)
+void QtWidgetOgreRenderWindow::resizeEvent(QResizeEvent* /*event*/)
 {
-  RenderWidget::resizeEvent(event);
+  if (render_window_)
+  {
+    // render_window_->writeContentsToFile() (used in
+    // VisualizationFrame::onSaveImage()) does not work right for
+    // window with an odd width, so here I just always force it to be
+    // even.
+    render_window_->resize(static_cast<quint32>(width() + (width() % 2)), static_cast<quint32>(height()));
+    render_window_->windowMovedOrResized();
+  }
 
   if (render_window_)
   {
@@ -342,7 +173,7 @@ void QtOgreRenderWindow::resizeEvent(QResizeEvent* event)
 
     if (auto_render_)
     {
-      update();
+      updateScene();
     }
   }
 }

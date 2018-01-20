@@ -174,7 +174,11 @@ void RenderPanel::showContextMenu(boost::shared_ptr<QMenu> menu)
   context_menu_ = std::move(menu);
   context_menu_visible_ = true;
 
-  QApplication::postEvent(this, new QContextMenuEvent(QContextMenuEvent::Mouse, QPoint()));
+  QWidget* widget = dynamic_cast<QWidget*>(render_window_);
+  if (widget)
+  {
+    QApplication::postEvent(widget, new QContextMenuEvent(QContextMenuEvent::Mouse, QPoint()));
+  }
 }
 
 void RenderPanel::onContextMenuHide()

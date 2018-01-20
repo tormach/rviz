@@ -29,9 +29,12 @@
 #ifndef QT_OGRE_RENDER_WINDOW_OGRE_RENDER_WINDOW_H_
 #define QT_OGRE_RENDER_WINDOW_OGRE_RENDER_WINDOW_H_
 
-#include <boost/function.hpp>
+#include "ogre_viewport_support.h"
 
-#include "render_widget.h"
+#include <QCursor>
+#include <QKeyEvent>
+#include <QWheelEvent>
+#include <QEvent>
 
 #include <OGRE/OgreColourValue.h>
 #include <OGRE/OgreRenderTargetListener.h>
@@ -53,61 +56,12 @@ namespace rviz
  *  the guts replaced by new RenderSystem and RenderWidget classes
  *  inspired by the initialization sequence of Gazebo's renderer.
  */
-class QtOgreRenderWindow : public Ogre::RenderTargetListener
+class QtOgreRenderWindow : public OgreViewportSupport
 {
 public:
   explicit QtOgreRenderWindow();
 
   virtual ~QtOgreRenderWindow();
-
-  /**
-   * Set a callback which is called before each render
-   * @param func The callback functor
-   */
-  virtual void setPreRenderCallback(boost::function<void()> func) = 0;
-  /**
-   * Set a callback which is called after each render
-   * @param func The callback functor
-   */
-  virtual void setPostRenderCallback(boost::function<void()> func) = 0;
-
-  /** Gets the associated Ogre viewport.  If this is called before
-   * QWidget::show() on this widget, it will fail an assertion.
-   * Several functions of Ogre::Viewport are duplicated in this class
-   * which can be called before QWidget::show(), and their effects are
-   * propagated to the viewport when it is created.
-   */
-  virtual Ogre::Viewport* getViewport() const;
-
-  virtual Ogre::RenderWindow* getRenderWindow() = nullptr;
-
-  /** Set the camera associated with this render window's viewport.
-   */
-  virtual void setCamera(Ogre::Camera* camera) = nullptr;
-
-  virtual Ogre::Camera* getCamera() const = nullptr;
-
-  /**
-   * \brief Set the scale of the orthographic window.  Only valid for an orthographic camera.
-   * @param scale The scale
-   */
-  virtual void setOrthoScale(float scale) = nullptr;
-
-  /** \brief Enable or disable stereo rendering
-   * If stereo is not supported this is ignored.
-   * @return the old setting (whether stereo was enabled before)
-   */
-  virtual bool enableStereo(bool enable) = nullptr;
-
-  /** \brief Prepare to render in stereo if enabled and supported. */
-  virtual void setupStereo() = nullptr;
-
-  virtual void setAutoRender(bool auto_render) = nullptr;
-
-  ////// Functions mimicked from Ogre::Viewport to satisfy timing of
-  ////// after-constructor creation of Ogre::RenderWindow.
-  virtual void setOverlaysEnabled(bool overlays_enabled) = nullptr;
-  virtual void setBackgroundColor(Ogre::ColourValue color) = nullptr;
 
   virtual void setFocus(Qt::FocusReason reason) = 0;
   virtual QPoint mapFromGlobal(const QPoint&) const = 0;
@@ -128,8 +82,6 @@ public:
   {
     leave_event_callback_ = function;
   }
-
-  virtual QRect rect() const = 0;
 
 protected:
   void emitKeyPressEvent(QKeyEvent* event)
