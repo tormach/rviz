@@ -109,8 +109,8 @@ find_package(OpenGL REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 
-find_package(Qt5 REQUIRED COMPONENTS Core Widgets OpenGL)
-set(QT_LIBRARIES Qt5::Widgets)
+find_package(Qt5 REQUIRED COMPONENTS Core Widgets Quick QuickWidgets OpenGL)
+set(QT_LIBRARIES Qt5::Widgets Qt5::Quick Qt5::QuickWidgets)
 set(QTVERSION ${Qt5Widgets_VERSION})
 add_definitions(-DQT_NO_KEYWORDS)
 

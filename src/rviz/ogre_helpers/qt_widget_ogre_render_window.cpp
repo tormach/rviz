@@ -64,6 +64,8 @@ QtWidgetOgreRenderWindow::QtWidgetOgreRenderWindow(QWidget* parent) : QWidget(pa
 #endif
   render_window_ = render_system_->makeRenderWindow(win_id, static_cast<quint32>(width()),
                                                     static_cast<quint32>(height()), pixel_ratio);
+  render_window_->setVisible(true);
+  render_window_->setAutoUpdated(true);
 
   OgreViewportSupport::initialize();
 }

@@ -93,6 +93,7 @@ protected:
   virtual void preViewportUpdate(const Ogre::RenderTargetViewportEvent& evt) override;
   virtual void postViewportUpdate(const Ogre::RenderTargetViewportEvent& evt) override;
 
+  void initializeRenderSystem();
   void initialize();
 
   virtual void updateScene() = 0;
