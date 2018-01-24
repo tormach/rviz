@@ -1,20 +1,25 @@
 #include "quick_visualization_frame.h"
 
+#include <OgreRenderWindow.h>
+#include <OgreMeshManager.h>
+
+#include "rviz/render_panel.h"
+#include "rviz/visualization_manager.h"
+#include "rviz/display.h"
+
 #include <ros/console.h>
 #include <ros/package.h>
 #include <ros/init.h>
 
-#include <OgreRenderWindow.h>
-#include <OgreMeshManager.h>
-
-#include "rviz/ogre_helpers/qt_quick_ogre_render_window.h"
-#include "rviz/render_panel.h"
-#include "rviz/visualization_manager.h"
-
 namespace rviz
 {
 QuickVisualizationFrame::QuickVisualizationFrame(QQuickItem* parent)
-  : QQuickItem(parent), render_panel_(nullptr), manager_(nullptr), initialized_(false), status_text_("")
+  : QQuickItem(parent)
+  , render_panel_(nullptr)
+  , render_window_(nullptr)
+  , manager_(nullptr)
+  , initialized_(false)
+  , status_text_("")
 {
 }
 
@@ -22,7 +27,7 @@ QuickVisualizationFrame::~QuickVisualizationFrame()
 {
 }
 
-void QuickVisualizationFrame::initialize(const QString& display_config_file)
+void QuickVisualizationFrame::initialize(QtQuickOgreRenderWindow* render_window)
 {
   // TODO: init configs
 
@@ -35,11 +40,13 @@ void QuickVisualizationFrame::initialize(const QString& display_config_file)
   }
 
   // auto render_window = new QtWidgetOgreRenderWindow( central_widget );
-  auto render_window = new QtQuickOgreRenderWindow(this);
-  render_window->setParent(this);
+  // auto render_window = new QtQuickOgreRenderWindow(this);
+  // render_window->setParent(this);
   // anchors.fill: parent
-  qvariant_cast<QObject*>(render_window->property("anchors"))
-      ->setProperty("fill", QVariant::fromValue(this));
+  // qvariant_cast<QObject*>(render_window->property("anchors"))
+  //      ->setProperty("fill", QVariant::fromValue(this));
+  connect(render_window, &QtQuickOgreRenderWindow::ogreInitializing, this,
+          &QuickVisualizationFrame::onOgreInitializing);
   connect(render_window, &QtQuickOgreRenderWindow::ogreInitialized, this,
           &QuickVisualizationFrame::onOgreInitialized);
 
@@ -54,7 +61,14 @@ QString QuickVisualizationFrame::getStatusText() const
 
 void QuickVisualizationFrame::componentComplete()
 {
-  initialize("");
+  Q_ASSERT(render_window_ != nullptr);
+
+  initialize(render_window_);
+}
+
+QtQuickOgreRenderWindow* QuickVisualizationFrame::getRenderWindow() const
+{
+  return render_window_;
 }
 
 void QuickVisualizationFrame::reset()
@@ -69,17 +83,20 @@ void QuickVisualizationFrame::showMessage(const QString& message)
   Q_EMIT statusTextChanged(status_text_);
 }
 
-void QuickVisualizationFrame::onOgreInitialized()
+void QuickVisualizationFrame::onOgreInitializing()
 {
   manager_ = new VisualizationManager(render_panel_, nullptr);
 
   render_panel_->initialize(manager_->getSceneManager(), manager_);
 
-  ToolManager* tool_man = manager_->getToolManager();
+  // ToolManager* tool_man = manager_->getToolManager();
   // TODO: connect signals
 
   manager_->initialize();
+}
 
+void QuickVisualizationFrame::onOgreInitialized()
+{
   // TODO: load display config
 
   manager_->startUpdate();
@@ -89,10 +106,26 @@ void QuickVisualizationFrame::onOgreInitialized()
   connect(manager_, &VisualizationManager::preUpdate, this, &QuickVisualizationFrame::updateFps);
   connect(manager_, &VisualizationManager::statusUpdate, this,
           &QuickVisualizationFrame::statusTextChanged);
+
+  auto grid = manager_->createDisplay("rviz/Grid", "adjustable grid", true);
+  ROS_ASSERT(grid != NULL);
+  grid->subProp("Line Style")->setValue("Billboards");
+  grid->subProp("Color")->setValue(QColor(Qt::yellow));
 }
 
 void QuickVisualizationFrame::updateFps()
 {
+}
+
+void rviz::QuickVisualizationFrame::setRenderWindow(QtQuickOgreRenderWindow* render_window)
+{
+  if (render_window_ == render_window)
+  {
+    return;
+  }
+
+  render_window_ = render_window;
+  Q_EMIT renderWindowChanged(render_window_);
 }
 
 } // namespace rviz
