@@ -6,11 +6,11 @@
 
 #include "rviz/config.h"
 #include "rviz/panel.h"
-#include "rviz/ogre_helpers/qt_quick_ogre_render_window.h"
 
 namespace rviz
 {
 class RenderPanel;
+class QtQuickOgreRenderWindow;
 
 class QuickVisualizationFrame : public QQuickItem
 {
@@ -25,7 +25,7 @@ class QuickVisualizationFrame : public QQuickItem
 public:
   explicit QuickVisualizationFrame(QQuickItem* parent = Q_NULLPTR);
 
-  ~QuickVisualizationFrame();
+  virtual ~QuickVisualizationFrame();
 
   virtual void componentComplete();
 
@@ -57,6 +57,7 @@ private:
   RenderPanel* render_panel_;
   QtQuickOgreRenderWindow* render_window_;
   VisualizationManager* manager_;
+  bool initializing_;
   bool initialized_;
 
   QString status_text_;
