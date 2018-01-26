@@ -50,6 +50,7 @@ public:
   virtual void mousePressEvent(QMouseEvent* event);
   virtual void mouseReleaseEvent(QMouseEvent* event);
   virtual void mouseDoubleClickEvent(QMouseEvent* event);
+  virtual void contextMenuEvent(QContextMenuEvent* event);
 
   virtual QRect rect() const;
 

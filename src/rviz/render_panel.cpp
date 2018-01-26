@@ -70,6 +70,8 @@ RenderPanel::RenderPanel(QtOgreRenderWindow* render_window, QObject* parent)
   render_window_->setLeaveEventCallack([this](QEvent* event) { this->onLeaveEvent(event); });
   render_window_->setMouseEventCallback(
       [this](QMouseEvent* event) { this->onRenderWindowMouseEvents(event); });
+  render_window_->setContextMenuEvent(
+      [this](QContextMenuEvent* event) { this->onContextMenuEvent(event); });
 }
 
 RenderPanel::~RenderPanel()
@@ -193,7 +195,7 @@ bool RenderPanel::contextMenuVisible()
   return context_menu_visible_;
 }
 
-void RenderPanel::contextMenuEvent(QContextMenuEvent* /*event*/)
+void RenderPanel::onContextMenuEvent(QContextMenuEvent* /*event*/)
 {
   boost::shared_ptr<QMenu> context_menu;
   {

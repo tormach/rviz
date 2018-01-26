@@ -144,18 +144,14 @@ public:
   QPoint mapToGlobal(const QPoint& point) const;
 
 protected:
-  // Override from QWidget
-  void contextMenuEvent(QContextMenuEvent* event) override;
-
   /// Called when any mouse event happens inside the render window
   void onRenderWindowMouseEvents(QMouseEvent* event);
 
-  void onLeaveEvent(QEvent* event) override;
-
-  /// Called when there is a mouse-wheel event.
-  void onWheelEvent(QWheelEvent* event) override;
-
-  void onKeyPressEvent(QKeyEvent* event) override;
+  // daisy chained events from render window
+  void onLeaveEvent(QEvent* event);
+  void onWheelEvent(QWheelEvent* event);
+  void onKeyPressEvent(QKeyEvent* event);
+  void onContextMenuEvent(QContextMenuEvent* event);
 
   // Mouse handling
   int mouse_x_;              ///< X position of the last mouse event
