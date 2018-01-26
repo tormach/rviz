@@ -36,12 +36,12 @@ public:
     return QSize(320, 240);
   }
 
-  void setFocus(Qt::FocusReason reason);
-  QPoint mapFromGlobal(const QPoint& point) const;
-  QPoint mapToGlobal(const QPoint& point) const;
-  void setCursor(const QCursor& cursor);
-  bool containsPoint(const QPoint& point) const;
-  double getWindowPixelRatio() const;
+  virtual void setFocus(Qt::FocusReason reason);
+  virtual QPoint mapFromGlobal(const QPoint& point) const;
+  virtual QPoint mapToGlobal(const QPoint& point) const;
+  virtual void setCursor(const QCursor& cursor);
+  virtual bool containsPoint(const QPoint& point) const;
+  virtual double getWindowPixelRatio() const;
 
   virtual void keyPressEvent(QKeyEvent* event);
   virtual void wheelEvent(QWheelEvent* event);
@@ -51,7 +51,7 @@ public:
   virtual void mouseReleaseEvent(QMouseEvent* event);
   virtual void mouseDoubleClickEvent(QMouseEvent* event);
 
-  QRect rect() const;
+  virtual QRect rect() const;
 
 protected:
   virtual void moveEvent(QMoveEvent* event);
@@ -59,13 +59,13 @@ protected:
   virtual void resizeEvent(QResizeEvent* event);
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-  QPaintEngine* paintEngine() const
+  virtual QPaintEngine* paintEngine() const
   {
     return 0;
   }
 #endif
 
-  void updateScene();
+  virtual void updateScene();
 };
 
 } // namespace rviz
