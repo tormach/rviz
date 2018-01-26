@@ -20,6 +20,7 @@ class QuickVisualizationFrame : public QQuickItem
   Q_PROPERTY(QtQuickOgreRenderWindow* renderWindow READ getRenderWindow WRITE setRenderWindow NOTIFY
                  renderWindowChanged)
   Q_PROPERTY(VisualizationManager* manager READ getManager NOTIFY managerChanged)
+  Q_PROPERTY(bool initialized READ isInitialized NOTIFY initializedChanged)
 
 public:
   explicit QuickVisualizationFrame(QQuickItem* parent = Q_NULLPTR);
@@ -29,10 +30,9 @@ public:
   virtual void componentComplete();
 
   VisualizationManager* getManager();
-
   QString getStatusText() const;
-
   QtQuickOgreRenderWindow* getRenderWindow() const;
+  bool isInitialized() const;
 
   static void registerTypes();
 
@@ -44,10 +44,10 @@ public Q_SLOTS:
   void setRenderWindow(QtQuickOgreRenderWindow* renderWindow);
 
 Q_SIGNALS:
-  void initializationCompleted();
   void statusTextChanged(const QString& status_text);
   void renderWindowChanged(QtQuickOgreRenderWindow* render_window);
   void managerChanged(VisualizationManager* manager);
+  void initializedChanged(bool initialized);
 
 private Q_SLOTS:
   void onOgreInitializing();
@@ -57,7 +57,6 @@ private:
   RenderPanel* render_panel_;
   QtQuickOgreRenderWindow* render_window_;
   VisualizationManager* manager_;
-
   bool initialized_;
 
   QString status_text_;

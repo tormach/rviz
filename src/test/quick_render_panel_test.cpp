@@ -40,10 +40,10 @@
 
 using namespace rviz;
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
-  QApplication app( argc, argv );
-  ros::init( argc, argv, "quick_render_panel_test" );
+  QApplication app(argc, argv);
+  ros::init(argc, argv, "quick_render_panel_test");
 
   rviz::QuickVisualizationFrame::registerTypes();
 
