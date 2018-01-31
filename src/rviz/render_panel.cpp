@@ -84,6 +84,7 @@ RenderPanel::~RenderPanel()
   {
     scene_manager_->removeListener(this);
   }
+  scene_manager_ = nullptr;
 }
 
 void RenderPanel::initialize(Ogre::SceneManager* scene_manager, DisplayContext* context)
