@@ -49,8 +49,6 @@ class Camera;
 
 namespace rviz
 {
-class RenderSystem;
-
 /**
  * \brief Generic interface for Qt Ogre render windows
  * Qt Ogre render window widget.  Similar in API to
@@ -167,10 +165,8 @@ protected:
    */
   void prepareStereoViewport(Ogre::Viewport*);
 
-  RenderSystem* render_system_;
   Ogre::RenderWindow* render_window_;
   Ogre::Viewport* viewport_;
-  Ogre::Root* ogre_root_;
 
   boost::function<void()> pre_render_callback_;  ///< Functor which is called before each render
   boost::function<void()> post_render_callback_; ///< Functor which is called after each render

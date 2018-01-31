@@ -48,10 +48,8 @@
 namespace rviz
 {
 QtOgreRenderWindow::QtOgreRenderWindow()
-  : render_system_(nullptr)
-  , render_window_(nullptr)
+  : render_window_(nullptr)
   , viewport_(nullptr)
-  , ogre_root_(nullptr)
   , ortho_scale_(1.0f)
   , auto_render_(true)
   , camera_(nullptr)
@@ -63,12 +61,6 @@ QtOgreRenderWindow::QtOgreRenderWindow()
   , right_camera_(nullptr)
   , right_viewport_(nullptr)
 {
-}
-
-void QtOgreRenderWindow::initializeRenderSystem()
-{
-  render_system_ = RenderSystem::get();
-  ogre_root_ = RenderSystem::get()->root();
 }
 
 void QtOgreRenderWindow::initialize()
