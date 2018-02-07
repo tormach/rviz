@@ -41,7 +41,7 @@ public:
    *
    * @param config Must have type Config::Map.
    * @sa save() */
-  virtual void load( const Config& config );
+  virtual void load(const Config& config);
 
   /** @brief Save the properties of each subsystem and most editable rviz
    *         data.
@@ -50,7 +50,7 @@ public:
    *
    * @param config The Config node to write into.
    * @sa load() */
-  virtual void save( Config config );
+  virtual void save(Config config);
 
 public Q_SLOTS:
   void reset();

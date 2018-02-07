@@ -57,7 +57,8 @@ int main(int argc, char** argv)
   qmlRegisterType<DisplayConfig>("MyModule", 1, 0, "DisplayConfig");
 
   QQmlApplicationEngine engine;
-  engine.rootContext()->setContextProperty("rvizPath", QString::fromStdString(ros::package::getPath("rviz")));
+  engine.rootContext()->setContextProperty("rvizPath",
+                                           QString::fromStdString(ros::package::getPath("rviz")));
   engine.load(QUrl("qrc:/qml/quick_render_panel_test.qml"));
 
   return app.exec();

@@ -107,22 +107,24 @@ void rviz::QuickVisualizationFrame::setRenderWindow(QtQuickOgreRenderWindow* ren
   }
 }
 
-void QuickVisualizationFrame::load(const Config &config)
+void QuickVisualizationFrame::load(const Config& config)
 {
-  if (!manager_) {
+  if (!manager_)
+  {
     qCritical("Load config called before creating visualization manager");
     return;
   }
-  manager_->load( config.mapGetChild( "Visualization Manager" ));
+  manager_->load(config.mapGetChild("Visualization Manager"));
 }
 
 void QuickVisualizationFrame::save(Config config)
 {
-  if (!manager_) {
+  if (!manager_)
+  {
     qCritical("Save config called before creating visualization manager");
     return;
   }
-  manager_->save( config.mapMakeChild( "Visualization Manager" ));
+  manager_->save(config.mapMakeChild("Visualization Manager"));
 }
 
 bool QuickVisualizationFrame::isInitialized() const
