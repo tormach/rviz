@@ -104,9 +104,6 @@ void QtQuickOgreRenderWindow::onWindowChanged(QQuickWindow* window)
     Ogre::Root::getSingleton().addFrameListener(this);
     initialized_ = true;
   });
-
-  connect(&update_timer_, &QTimer::timeout, this, &QQuickItem::update);
-  update_timer_.start(16);
 }
 
 QSGNode* QtQuickOgreRenderWindow::updatePaintNode(QSGNode* oldNode, QQuickItem::UpdatePaintNodeData*)

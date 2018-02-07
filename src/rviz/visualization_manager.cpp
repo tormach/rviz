@@ -128,7 +128,7 @@ VisualizationManager::VisualizationManager(RenderPanel* render_panel,
   , time_update_timer_(0.0f)
   , frame_update_timer_(0.0f)
   , render_requested_(1)
-  , render_disabled_(false)
+  , render_from_render_panel_(false)
   , frame_count_(0)
   , window_manager_(wm)
   , private_(new VisualizationManagerPrivate)
@@ -318,9 +318,14 @@ void VisualizationManager::queueRender()
   render_requested_ = 1;
 }
 
-void VisualizationManager::disableRender()
+void VisualizationManager::setRenderFromRenderPanel(bool enabled)
 {
-  render_disabled_ = true;
+  render_from_render_panel_ = enabled;
+}
+
+bool rviz::VisualizationManager::getRenderFromRenderPanel() const
+{
+  return render_from_render_panel_;
 }
 
 void VisualizationManager::onUpdate()
@@ -379,11 +384,18 @@ void VisualizationManager::onUpdate()
 
   frame_count_++;
 
-  if ((render_requested_ || wall_dt > 0.01f) && !render_disabled_)
+  if ((render_requested_ || wall_dt > 0.01f))
   {
     render_requested_ = 0;
-    boost::mutex::scoped_lock lock(private_->render_mutex_);
-    ogre_root_->renderOneFrame();
+    if (!render_from_render_panel_)
+    {
+      boost::mutex::scoped_lock lock(private_->render_mutex_);
+      ogre_root_->renderOneFrame();
+    }
+    else
+    {
+      render_panel_->renderOneFrame();
+    }
   }
 }
 
