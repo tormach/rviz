@@ -47,24 +47,24 @@ public:
   virtual bool containsPoint(const QPoint& point) const;
   virtual double getWindowPixelRatio() const;
 
-  virtual void keyPressEvent(QKeyEvent* event);
-  virtual void wheelEvent(QWheelEvent* event);
-  virtual void leaveEvent(QEvent* event);
-  virtual void mouseMoveEvent(QMouseEvent* event);
-  virtual void mousePressEvent(QMouseEvent* event);
-  virtual void mouseReleaseEvent(QMouseEvent* event);
-  virtual void mouseDoubleClickEvent(QMouseEvent* event);
-  virtual void contextMenuEvent(QContextMenuEvent* event);
+  virtual void keyPressEvent(QKeyEvent* event) override;
+  virtual void wheelEvent(QWheelEvent* event) override;
+  virtual void leaveEvent(QEvent* event) override;
+  virtual void mouseMoveEvent(QMouseEvent* event) override;
+  virtual void mousePressEvent(QMouseEvent* event) override;
+  virtual void mouseReleaseEvent(QMouseEvent* event) override;
+  virtual void mouseDoubleClickEvent(QMouseEvent* event) override;
+  virtual void contextMenuEvent(QContextMenuEvent* event) override;
 
   virtual QRect rect() const;
 
 protected:
-  virtual void moveEvent(QMoveEvent* event);
-  virtual void paintEvent(QPaintEvent* event);
-  virtual void resizeEvent(QResizeEvent* event);
+  virtual void moveEvent(QMoveEvent* event) override;
+  virtual void paintEvent(QPaintEvent* event) override;
+  virtual void resizeEvent(QResizeEvent* event) override;
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-  virtual QPaintEngine* paintEngine() const
+  virtual QPaintEngine* paintEngine() const override
   {
     return 0;
   }
