@@ -31,6 +31,7 @@
 
 #include <OGRE/OgreRoot.h>
 #include <stdint.h>
+#include <qglobal.h>
 
 #include <rviz/rviz_export.h>
 
