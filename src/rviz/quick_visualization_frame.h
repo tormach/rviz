@@ -7,6 +7,8 @@
 #include "rviz/config.h"
 #include "rviz/panel.h"
 
+#include <ros/time.h>
+
 namespace rviz
 {
 class RenderPanel;
@@ -21,6 +23,7 @@ class QuickVisualizationFrame : public QQuickItem
                  renderWindowChanged)
   Q_PROPERTY(VisualizationManager* manager READ getManager NOTIFY managerChanged)
   Q_PROPERTY(bool initialized READ isInitialized NOTIFY initializedChanged)
+  Q_PROPERTY(double fps READ fps NOTIFY fpsChanged)
 
 public:
   explicit QuickVisualizationFrame(QQuickItem* parent = Q_NULLPTR);
@@ -32,7 +35,7 @@ public:
   QString getStatusText() const;
   QtQuickOgreRenderWindow* getRenderWindow() const;
   bool isInitialized() const;
-
+  double fps() const;
   static void registerTypes();
 
   /** @brief Load the properties of all subsystems from the given Config.
@@ -64,6 +67,10 @@ Q_SIGNALS:
   void renderWindowChanged(QtQuickOgreRenderWindow* render_window);
   void managerChanged(VisualizationManager* manager);
   void initializedChanged(bool initialized);
+  void fpsChanged(double fps);
+
+protected Q_SLOTS:
+  void updateFps();
 
 private Q_SLOTS:
   void onOgreInitializing();
@@ -75,8 +82,12 @@ private:
   VisualizationManager* manager_;
   bool initializing_;
   bool initialized_;
+  double fps_;
 
   QString status_text_;
+
+  int frame_count_;
+  ros::WallTime last_fps_calc_time_;
 
   /** @brief Initialize the visualizer.  Creates the VisualizationManager.
    *
