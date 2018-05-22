@@ -316,6 +316,11 @@ double QtQuickOgreRenderWindow::getWindowPixelRatio() const
   return window()->devicePixelRatio();
 }
 
+bool QtQuickOgreRenderWindow::isVisible() const
+{
+  return QQuickItem::isVisible();
+}
+
 QRect QtQuickOgreRenderWindow::rect() const
 {
   return QQuickItem::boundingRect().toRect();

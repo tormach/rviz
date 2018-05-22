@@ -46,6 +46,7 @@ public:
   virtual void setCursor(const QCursor& cursor);
   virtual bool containsPoint(const QPoint& point) const;
   virtual double getWindowPixelRatio() const;
+  virtual bool isVisible() const;
 
   virtual void keyPressEvent(QKeyEvent* event) override;
   virtual void wheelEvent(QWheelEvent* event) override;

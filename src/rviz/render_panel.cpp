@@ -121,7 +121,7 @@ void RenderPanel::onRenderWindowMouseEvents(QMouseEvent* event)
   mouse_x_ = event->x();
   mouse_y_ = event->y();
 
-  if (context_)
+  if (context_ && render_window_->isVisible())
   {
     if (focus_on_mouse_move_)
     {
@@ -142,7 +142,7 @@ void RenderPanel::onWheelEvent(QWheelEvent* event)
   mouse_x_ = event->x();
   mouse_y_ = event->y();
 
-  if (context_)
+  if (context_ && render_window_->isVisible())
   {
     ViewportMouseEvent vme(this, render_window_->getViewport(), event, last_x, last_y);
     context_->handleMouseEvent(vme);
@@ -152,7 +152,7 @@ void RenderPanel::onWheelEvent(QWheelEvent* event)
 
 void RenderPanel::onKeyPressEvent(QKeyEvent* event)
 {
-  if (context_)
+  if (context_ && render_window_->isVisible())
   {
     context_->handleChar(event, this);
   }
