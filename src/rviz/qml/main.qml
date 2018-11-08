@@ -25,4 +25,3 @@ ApplicationWindow {
     renderWindow: renderWindow
   }
 }
-
