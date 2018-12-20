@@ -133,7 +133,10 @@ include(GenerateExportHeader)
 set(EXPORT_FILE_NAME ${EXPORT_HEADER_DIR}/rviz/${PROJECT_NAME}_export.h)
 generate_export_header(${PROJECT_NAME} EXPORT_FILE_NAME ${EXPORT_FILE_NAME})
 if(NOT WIN32)
-  set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-std=c++11")
+  set_target_properties(${PROJECT_NAME} PROPERTIES
+    COMPILE_FLAGS "-std=c++11"
+    INSTALL_RPATH "${OGRE_PLUGIN_PATH}"
+    )
 endif()
 
 target_link_libraries(${PROJECT_NAME}
@@ -161,7 +164,10 @@ endif(APPLE)
 add_executable(executable main.cpp)
 
 if(NOT WIN32)
-  set_target_properties(executable PROPERTIES COMPILE_FLAGS "-std=c++11")
+  set_target_properties(executable PROPERTIES
+    COMPILE_FLAGS "-std=c++11"
+    INSTALL_RPATH "${OGRE_PLUGIN_PATH}"
+    )
 endif()
 
 target_link_libraries(executable ${PROJECT_NAME} ${QT_LIBRARIES} ${OGRE_LIBRARIES})
