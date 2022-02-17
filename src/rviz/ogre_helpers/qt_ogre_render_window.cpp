@@ -289,17 +289,17 @@ void QtOgreRenderWindow::setCameraAspectRatio()
 
 void QtOgreRenderWindow::setKeyPressEventCallback(const std::function<void(QKeyEvent*)>& function)
 {
-  key_press_event_callback_ = function;
+  key_press_event_callback_ = std::move(function);
 }
 
 void QtOgreRenderWindow::setWheelEventCallback(const std::function<void(QWheelEvent*)>& function)
 {
-  wheel_event_callback_ = function;
+  wheel_event_callback_ = std::move(function);
 }
 
 void QtOgreRenderWindow::setLeaveEventCallack(const std::function<void(QEvent*)>& function)
 {
-  leave_event_callback_ = function;
+  leave_event_callback_ = std::move(function);
 }
 
 void QtOgreRenderWindow::setOrthoScale(float scale)
@@ -321,12 +321,12 @@ void QtOgreRenderWindow::setPostRenderCallback(boost::function<void()> func)
 
 void QtOgreRenderWindow::setMouseEventCallback(const std::function<void(QMouseEvent*)>& function)
 {
-  mouse_event_callback_ = function;
+  mouse_event_callback_ = std::move(function);
 }
 
 void QtOgreRenderWindow::setContextMenuEvent(const std::function<void(QContextMenuEvent*)>& function)
 {
-  context_menu_event_ = function;
+  context_menu_event_ = std::move(function);
 }
 
 void QtOgreRenderWindow::emitKeyPressEvent(QKeyEvent* event)
