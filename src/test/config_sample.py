@@ -22,7 +22,7 @@ print(c.mapGetChild("foo").getValue())
 print(c.mapGetChild("bar").getValue())
 print(c.mapGetChild("baz").getValue())
 print(c.mapGetChild("biff").mapGetChild("boff").getValue())
-# print c.mapGetChild( "goo" ).mapGetChild( "biff" ).getValue() # crashes because "goo" does not exist, so getChild("biff") can't be called.
+# print(c.mapGetChild( "goo" ).mapGetChild( "biff" ).getValue()) # crashes because "goo" does not exist, so getChild("biff") can't be called.
 
 mi = c.mapIterator()
 while mi.isValid():
