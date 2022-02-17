@@ -140,7 +140,7 @@ generate_export_header(${PROJECT_NAME} EXPORT_FILE_NAME ${EXPORT_FILE_NAME})
 if(NOT WIN32)
   set_target_properties(${PROJECT_NAME} PROPERTIES
     COMPILE_FLAGS "-std=c++11"
-    INSTALL_RPATH "${OGRE_PLUGIN_PATH}"
+    INSTALL_RPATH "${OGRE_PLUGIN_DIR}"
     )
 endif()
 
@@ -171,7 +171,7 @@ add_executable(executable main.cpp)
 if(NOT WIN32)
   set_target_properties(executable PROPERTIES
     COMPILE_FLAGS "-std=c++11"
-    INSTALL_RPATH "${OGRE_PLUGIN_PATH}"
+    INSTALL_RPATH "${OGRE_PLUGIN_DIR}"
     )
 endif()
 
@@ -211,7 +211,7 @@ if(NOT WIN32)
   set_target_properties(quick_executable PROPERTIES COMPILE_FLAGS "-std=c++11")
 endif()
 
-target_link_libraries(quick_executable ${PROJECT_NAME} ${QT_LIBRARIES} ${OGRE_OV_LIBRARIES_ABS})
+target_link_libraries(quick_executable ${PROJECT_NAME} ${QT_LIBRARIES} ${OGRE_LIBRARIES})
 
 set_target_properties(quick_executable
                       PROPERTIES OUTPUT_NAME quick_${PROJECT_NAME})
