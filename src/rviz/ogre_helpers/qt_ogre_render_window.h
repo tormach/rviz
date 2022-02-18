@@ -67,12 +67,12 @@ public:
    * Set a callback which is called before each render
    * @param func The callback functor
    */
-  virtual void setPreRenderCallback(boost::function<void()> func) = 0;
+  virtual void setPreRenderCallback(boost::function<void()> func);
   /**
    * Set a callback which is called after each render
    * @param func The callback functor
    */
-  virtual void setPostRenderCallback(boost::function<void()> func) = 0;
+  virtual void setPostRenderCallback(boost::function<void()> func);
 
   /** Gets the associated Ogre viewport.  If this is called before
    * QWidget::show() on this widget, it will fail an assertion.
