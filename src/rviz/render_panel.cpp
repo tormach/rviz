@@ -62,9 +62,7 @@ RenderPanel::RenderPanel(QtOgreRenderWindow* render_window, QObject* parent)
   , default_camera_(nullptr)
   , render_window_(render_window)
 {
-  setFocusPolicy(Qt::WheelFocus);
   render_window_->setFocus(Qt::OtherFocusReason);
-  setMouseTracking(true);
   render_window_->setKeyPressEventCallback([this](QKeyEvent* event) { this->onKeyPressEvent(event); });
   render_window_->setWheelEventCallback([this](QWheelEvent* event) { this->onWheelEvent(event); });
   render_window_->setLeaveEventCallack([this](QEvent* event) { this->onLeaveEvent(event); });
