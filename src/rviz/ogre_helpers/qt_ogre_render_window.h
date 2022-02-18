@@ -138,6 +138,8 @@ public:
 
   virtual QRect rect() const = 0;
 
+  virtual void updateScene() = 0;
+
 protected:
   void emitKeyPressEvent(QKeyEvent* event);
   void emitWheelEvent(QWheelEvent* event);
@@ -152,8 +154,6 @@ protected:
 
   void initializeRenderSystem();
   void initialize();
-
-  virtual void updateScene() = 0;
 
   /**
    * Sets the aspect ratio on the camera
