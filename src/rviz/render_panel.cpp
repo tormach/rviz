@@ -174,12 +174,12 @@ void RenderPanel::setViewController(ViewController* controller)
 void RenderPanel::showContextMenu(boost::shared_ptr<QMenu> menu)
 {
   boost::mutex::scoped_lock lock(context_menu_mutex_);
-  context_menu_ = std::move(menu);
-  context_menu_visible_ = true;
 
   QWidget* widget = dynamic_cast<QWidget*>(render_window_);
   if (widget)
   {
+    context_menu_ = std::move(menu);
+    context_menu_visible_ = true;
     QApplication::postEvent(widget, new QContextMenuEvent(QContextMenuEvent::Mouse, QPoint()));
   }
 }
