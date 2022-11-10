@@ -241,10 +241,12 @@ void InteractiveMarkerControl::processMessage(const visualization_msgs::Interact
     break;
   }
 
+#if 0
   if (parent_->hasMenu() && interaction_mode_ != visualization_msgs::InteractiveMarkerControl::MENU)
   {
     status_msg_ += "<b>Right-Click:</b> Show context menu.";
   }
+#endif
 
   // It's not clear to me why this one setOrientation() call needs to
   // be here and not above makeMarkers() with the other
