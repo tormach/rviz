@@ -35,6 +35,10 @@
 #include <ros/ros.h>
 #include <rviz/rviz_export.h>
 #include <rviz/SendFilePath.h>
+#include <rviz/SetProperty.h>
+#include <rviz/SetCurrentTool.h>
+#include <std_srvs/SetBool.h>
+#include <rviz/properties/property.h>
 #endif
 
 class QApplication;
@@ -66,14 +70,26 @@ private:
   bool loadConfigCallback(rviz::SendFilePathRequest& req, rviz::SendFilePathResponse& res);
   bool loadConfigDiscardingCallback(rviz::SendFilePathRequest& req, rviz::SendFilePathResponse& res);
   bool saveConfigCallback(rviz::SendFilePathRequest& req, rviz::SendFilePathResponse& res);
+  bool setDisplayPropertyCallback(rviz::SetPropertyRequest& req, rviz::SetPropertyResponse& res);
+  bool setViewPropertyCallback(rviz::SetPropertyRequest& req, rviz::SetPropertyResponse& res);
+  bool setGlobalOptionCallback(rviz::SetPropertyRequest& req, rviz::SetPropertyResponse& res);
+  bool setCurrentToolCallback(rviz::SetCurrentToolRequest& req, rviz::SetCurrentToolResponse& res);
+  bool setPropertyFromRequest(rviz::SetPropertyRequest& req, Property *property);
+  Property *findProperty(const QString& key, Property *property);
 
   QTimer* continue_timer_;
   VisualizationFrame* frame_;
+  bool embed_mode_;
   ros::NodeHandlePtr nh_;
   ros::ServiceServer reload_shaders_service_;
   ros::ServiceServer load_config_service_;
   ros::ServiceServer load_config_discarding_service_;
   ros::ServiceServer save_config_service_;
+  ros::ServiceServer set_display_property_service_;
+  ros::ServiceServer set_view_property_service_;
+  ros::ServiceServer set_global_option_service_;
+  ros::ServiceServer set_current_tool_service_;
+  ros::Publisher win_id_publisher_;
 };
 
 } // end namespace rviz

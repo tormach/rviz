@@ -166,6 +166,8 @@ set(rviz_DEFAULT_PLUGIN_LIBRARY_TARGET_NAME rviz_default_plugin)
 add_service_files(
   FILES
   SendFilePath.srv
+  SetProperty.srv
+  SetCurrentTool.srv
 )
 
 generate_messages(

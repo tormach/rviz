@@ -37,6 +37,7 @@
 #include <OgreGpuProgramManager.h>
 #include <OgreHighLevelGpuProgramManager.h>
 #include <std_srvs/Empty.h>
+#include <std_msgs/UInt32.h>
 
 #ifdef Q_OS_MAC
 #include <ApplicationServices/ApplicationServices.h>
@@ -55,6 +56,10 @@
 #include <rviz/visualization_manager.h>
 #include <rviz/wait_for_master_dialog.h>
 #include <rviz/ogre_helpers/render_system.h>
+#include <rviz/properties/property.h>
+#include <rviz/display_group.h>
+#include <rviz/view_manager.h>
+#include <rviz/tool_manager.h>
 
 #include <rviz/visualizer_app.h>
 
@@ -100,7 +105,7 @@ bool reloadShaders(std_srvs::Empty::Request& /*unused*/, std_srvs::Empty::Respon
   return true;
 }
 
-VisualizerApp::VisualizerApp() : continue_timer_(nullptr), frame_(nullptr)
+VisualizerApp::VisualizerApp() : continue_timer_(nullptr), frame_(nullptr), embed_mode_(false)
 {
 }
 
@@ -151,7 +156,8 @@ bool VisualizerApp::init(int argc, char** argv)
         "Force OpenGL version (use '--opengl 210' for OpenGL 2.1 compatibility mode)")
       ("disable-anti-aliasing", "Prevent rviz from trying to use anti-aliasing when rendering.")
       ("no-stereo", "Disable the use of stereo rendering.")("verbose,v", "Enable debug visualizations")
-      ("log-level-debug", "Sets the ROS logger level to debug.");
+      ("log-level-debug", "Sets the ROS logger level to debug.")
+      ("embed-mode,e", "Enable embedding mode (no menu and status bar, publish window id).");
     // clang-format on
     po::variables_map vm;
     try
@@ -201,6 +207,8 @@ bool VisualizerApp::init(int argc, char** argv)
     if (vm.count("no-stereo"))
       RenderSystem::forceNoStereo();
 
+    embed_mode_ = vm.count("embed-mode") > 0;
+
     frame_ = new VisualizationFrame();
     if (!help_path.empty())
     {
@@ -210,7 +218,7 @@ bool VisualizerApp::init(int argc, char** argv)
     if (vm.count("splash-screen"))
       frame_->setSplashPath(QString::fromStdString(splash_path));
 
-    frame_->initialize(QString::fromStdString(display_config));
+    frame_->initialize(QString::fromStdString(display_config), embed_mode_);
 
     if (!fixed_frame.empty())
       frame_->getManager()->setFixedFrame(QString::fromStdString(fixed_frame));
@@ -230,6 +238,23 @@ bool VisualizerApp::init(int argc, char** argv)
         "load_config_discarding_changes", &VisualizerApp::loadConfigDiscardingCallback, this);
     save_config_service_ =
         private_nh.advertiseService("save_config", &VisualizerApp::saveConfigCallback, this);
+    set_display_property_service_ =
+        private_nh.advertiseService("set_display_property", &VisualizerApp::setDisplayPropertyCallback, this);
+    set_view_property_service_ =
+        private_nh.advertiseService("set_view_property", &VisualizerApp::setViewPropertyCallback, this);
+    set_global_option_service_ =
+        private_nh.advertiseService("set_global_option", &VisualizerApp::setGlobalOptionCallback, this);
+    set_current_tool_service_ =
+        private_nh.advertiseService("set_current_tool", &VisualizerApp::setCurrentToolCallback, this);
+
+    if (embed_mode_)
+    {
+      ROS_INFO_STREAM("window id " << frame_->winId());
+      win_id_publisher_ = private_nh.advertise<std_msgs::UInt32>("window_id", 1, true);
+      std_msgs::UInt32 win_id;
+      win_id.data = frame_->winId();
+      win_id_publisher_.publish(win_id);
+    }
 
 #if CATCH_EXCEPTIONS
   }
@@ -244,6 +269,19 @@ bool VisualizerApp::init(int argc, char** argv)
 
 VisualizerApp::~VisualizerApp()
 {
+  reload_shaders_service_.shutdown();
+  load_config_service_.shutdown();
+  load_config_discarding_service_.shutdown();
+  save_config_service_.shutdown();
+  set_display_property_service_.shutdown();
+  set_view_property_service_.shutdown();
+  set_global_option_service_.shutdown();
+  set_current_tool_service_.shutdown();
+  if (embed_mode_)
+  {
+    win_id_publisher_.publish(std_msgs::UInt32());
+    win_id_publisher_.shutdown();
+  }
   delete continue_timer_;
   delete frame_;
 }
@@ -298,5 +336,146 @@ bool VisualizerApp::saveConfigCallback(rviz::SendFilePathRequest& req, rviz::Sen
   return true;
 }
 
+bool VisualizerApp::setPropertyFromRequest(rviz::SetPropertyRequest& req, Property *property)
+{
+  switch (req.value_type) {
+    case rviz::SetPropertyRequest::STRING_VALUE:
+      property->setValue(QString::fromStdString(req.string_value));
+      return true;
+    case rviz::SetPropertyRequest::FLOAT_VALUE:
+      property->setValue(req.float_value);
+      return true;
+    case rviz::SetPropertyRequest::BOOL_VALUE:
+      property->setValue(static_cast<bool>(req.bool_value));
+      return true;
+  }
+  return false;
+}
+
+Property *VisualizerApp::findProperty(const QString& key, Property *property)
+{
+  auto keys = key.split('/');
+  for (const auto& k : keys)
+  {
+    property = property->subProp(k);
+    if (!property)
+    {
+      return nullptr;
+    }
+  }
+  return property;
+}
+
+bool VisualizerApp::setDisplayPropertyCallback(rviz::SetPropertyRequest& req, rviz::SetPropertyResponse& res)
+{
+  auto group = frame_->getManager()->getRootDisplayGroup();
+  for (int i = group->numDisplays() - 1; i >= 0; --i)
+  {
+    Property* property = group->getDisplayAt(i);
+    if (!property || (property->getName() != QString::fromStdString(req.object_name)))
+    {
+      continue;
+    }
+
+    if (!req.key.empty())
+    {
+      property = findProperty(QString::fromStdString(req.key), property);
+      if (!property)
+      {
+        ROS_ERROR_STREAM("Failed to find property " << req.key << " in display " << req.object_name);
+        return true;
+      }
+    }
+    res.success = setPropertyFromRequest(req, property);
+    if (!res.success)
+    {
+      ROS_ERROR_STREAM("Failed to set property " << req.key << " in display " << req.object_name);
+    }
+    return true;
+  }
+
+  ROS_ERROR_STREAM("Failed to find display " << req.object_name);
+  return true;
+}
+
+bool VisualizerApp::setViewPropertyCallback(rviz::SetPropertyRequest& req, rviz::SetPropertyResponse& res)
+{
+  Property *property;
+  if (req.object_name.empty())
+  {
+    property = frame_->getManager()->getViewManager()->getCurrent();
+  }
+  else
+  {
+    bool found = false;
+    auto manager = frame_->getManager()->getViewManager();
+    for (int i = 0; i < manager->getNumViews(); ++i)
+    {
+      property = manager->getViewAt(i);
+      if (property->getName() == QString::fromStdString(req.object_name))
+      {
+        break;
+      }
+    }
+    if (!found)
+    {
+      ROS_ERROR_STREAM("Failed to find view " << req.object_name);
+      return true;
+    }
+  }
+
+  if (!req.key.empty())
+  {
+    property = findProperty(QString::fromStdString(req.key), property);
+    if (!property)
+    {
+      ROS_ERROR_STREAM("Failed to find property " << req.key << " in view " << req.object_name);
+      return true;
+    }
+  }
+  res.success = setPropertyFromRequest(req, property);
+  if (!res.success)
+  {
+    ROS_ERROR_STREAM("Failed to set property " << req.key << " in view " << req.object_name);
+  }
+  return true;
+}
+
+bool VisualizerApp::setGlobalOptionCallback(rviz::SetPropertyRequest& req, rviz::SetPropertyResponse& res)
+{
+  auto group = frame_->getManager()->getRootDisplayGroup()->subProp("Global Options");
+
+  Property *property = group->subProp(QString::fromStdString(req.key));
+  if (!property)
+  {
+    ROS_ERROR_STREAM("Failed to find property " << req.key << " in global options");
+    return true;
+  }
+  res.success = setPropertyFromRequest(req, property);
+  if (!res.success)
+  {
+    ROS_ERROR_STREAM("Failed to set property " << req.key << " in global options");
+  }
+  return true;
+}
+
+bool VisualizerApp::setCurrentToolCallback(rviz::SetCurrentToolRequest& req, rviz::SetCurrentToolResponse& res)
+{
+  auto manager = frame_->getManager()->getToolManager();
+  for (int i = 0; i < manager->numTools(); ++i)
+  {
+    auto tool = manager->getTool(i);
+    ROS_INFO_STREAM(tool->getName().toStdString());
+    if (tool->getName() == QString::fromStdString(req.tool_name))
+    {
+      manager->setCurrentTool(tool);
+      res.success = true;
+      return true;
+    }
+  }
+  ROS_ERROR_STREAM("Failed to find tool " << req.tool_name);
+  res.success = false;
+  return true;
+}
 
 } // namespace rviz

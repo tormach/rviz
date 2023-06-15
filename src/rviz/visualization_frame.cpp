@@ -238,7 +238,7 @@ void VisualizationFrame::setSplashPath(const QString& splash_path)
   splash_path_ = splash_path;
 }
 
-void VisualizationFrame::initialize(const QString& display_config_file)
+void VisualizationFrame::initialize(const QString& display_config_file, bool embed_mode)
 {
   initConfigs();
 
@@ -320,6 +320,13 @@ void VisualizationFrame::initialize(const QString& display_config_file)
   // Periodically process events for the splash screen.
   QCoreApplication::processEvents();
 
+  if (embed_mode) {
+    hide_left_dock_button_->hide();
+    hide_right_dock_button_->hide();
+    menuBar()->hide();
+    statusBar()->hide();
+  }
+
   manager_ = new VisualizationManager(render_panel_, this);
   manager_->setHelpPath(help_path_);
   connect(manager_, SIGNAL(escapePressed()), this, SLOT(exitFullScreen()));
@@ -353,6 +360,8 @@ void VisualizationFrame::initialize(const QString& display_config_file)
   {
     loadDisplayConfig(QString::fromStdString(default_display_config_file_));
   }
+
+  this->show();
 
   // Periodically process events for the splash screen.
   QCoreApplication::processEvents();
