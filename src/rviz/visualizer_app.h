@@ -67,6 +67,8 @@ private Q_SLOTS:
 
 private:
   void startContinueChecker();
+  void sigintHandler(int sig);
+  static void sigintHandlerStatic(int sig);
   bool loadConfigCallback(rviz::SendFilePathRequest& req, rviz::SendFilePathResponse& res);
   bool loadConfigDiscardingCallback(rviz::SendFilePathRequest& req, rviz::SendFilePathResponse& res);
   bool saveConfigCallback(rviz::SendFilePathRequest& req, rviz::SendFilePathResponse& res);

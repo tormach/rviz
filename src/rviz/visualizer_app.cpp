@@ -68,6 +68,8 @@
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 
+rviz::VisualizerApp *instance_ = nullptr; // for SIGINT handler
+
 namespace rviz
 {
 bool reloadShaders(std_srvs::Empty::Request& /*unused*/, std_srvs::Empty::Response& /*unused*/)
@@ -132,7 +134,7 @@ bool VisualizerApp::init(int argc, char** argv)
   try
   {
 #endif
-    ros::init(argc, argv, "rviz", ros::init_options::AnonymousName);
+    ros::init(argc, argv, "rviz", ros::init_options::AnonymousName | ros::init_options::NoSigintHandler);
 
     startContinueChecker();
 
@@ -195,6 +197,13 @@ bool VisualizerApp::init(int argc, char** argv)
     }
 
     nh_.reset(new ros::NodeHandle);
+    // install SIGINT handler, must be doner after NodeHandle initialization
+    if (instance_ != nullptr)
+    {
+      ROS_WARN("Multiple instances of rviz::VisualizerApp created!");
+    }
+    instance_ = this;
+    signal(SIGINT, VisualizerApp::sigintHandlerStatic);
 
     if (vm.count("ogre-log"))
       OgreLogging::useRosLog();
@@ -279,9 +288,9 @@ VisualizerApp::~VisualizerApp()
   set_current_tool_service_.shutdown();
   if (embed_mode_)
   {
-    win_id_publisher_.publish(std_msgs::UInt32());
     win_id_publisher_.shutdown();
   }
+  instance_ = nullptr;
   delete continue_timer_;
   delete frame_;
 }
@@ -291,6 +300,25 @@ void VisualizerApp::startContinueChecker()
   continue_timer_ = new QTimer(this);
   connect(continue_timer_, SIGNAL(timeout()), this, SLOT(checkContinue()));
   continue_timer_->start(100);
+}
+
+void VisualizerApp::sigintHandler(int /*sig*/)
+{
+  if (embed_mode_)
+  {
+    std_msgs::UInt32 win_id;
+    win_id.data = 0;
+    win_id_publisher_.publish(win_id);
+  }
+}
+
+void VisualizerApp::sigintHandlerStatic(int sig)
+{
+  if (instance_ != nullptr)
+  {
+    instance_->sigintHandler(sig);
+  }
+  ros::shutdown();
 }
 
 void VisualizerApp::checkContinue()
