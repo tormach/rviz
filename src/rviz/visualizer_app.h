@@ -77,6 +77,7 @@ private:
   bool setGlobalOptionCallback(rviz::SetPropertyRequest& req, rviz::SetPropertyResponse& res);
   bool setCurrentToolCallback(rviz::SetCurrentToolRequest& req, rviz::SetCurrentToolResponse& res);
   bool setPropertyFromRequest(rviz::SetPropertyRequest& req, Property *property);
+  bool setInputEnabledCallback(std_srvs::SetBoolRequest& req, std_srvs::SetBoolResponse& res);
   Property *findProperty(const QString& key, Property *property);
 
   QTimer* continue_timer_;
@@ -92,6 +93,7 @@ private:
   ros::ServiceServer set_global_option_service_;
   ros::ServiceServer set_current_tool_service_;
   ros::Publisher win_id_publisher_;
+  ros::ServiceServer set_input_enabled_service_;
 };
 
 } // end namespace rviz

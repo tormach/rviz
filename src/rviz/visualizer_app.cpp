@@ -255,6 +255,8 @@ bool VisualizerApp::init(int argc, char** argv)
         private_nh.advertiseService("set_global_option", &VisualizerApp::setGlobalOptionCallback, this);
     set_current_tool_service_ =
         private_nh.advertiseService("set_current_tool", &VisualizerApp::setCurrentToolCallback, this);
+    set_input_enabled_service_ =
+        private_nh.advertiseService("set_input_enabled", &VisualizerApp::setInputEnabledCallback, this);
 
     if (embed_mode_)
     {
@@ -503,6 +505,13 @@ bool VisualizerApp::setCurrentToolCallback(rviz::SetCurrentToolRequest& req, rvi
   }
   ROS_ERROR_STREAM("Failed to find tool " << req.tool_name);
   res.success = false;
+  return true;
+}
+
+bool VisualizerApp::setInputEnabledCallback(std_srvs::SetBool::Request& req, std_srvs::SetBool::Response& res)
+{
+  frame_->setEnabled(req.data);
+  res.success = true;
   return true;
 }
 
