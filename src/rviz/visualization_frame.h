@@ -93,6 +93,9 @@ public:
    * from showing, set this to an empty string. */
   void setSplashPath(const QString& splash_path);
 
+  /** @brief Enables or disables the embed mode. */
+  void setEmbedMode(bool embed);
+
   /** @brief Initialize the visualizer.  Creates the VisualizationManager.
    *
    * This function must be called before load(), save(), getManager(),
@@ -102,7 +105,7 @@ public:
    * This function also calls VisualizationManager::initialize(),
    * which means it will start the update timer and generally get
    * things rolling. */
-  void initialize(const QString& display_config_file = "", bool embed_mode = false);
+  void initialize(const QString& display_config_file = "");
 
   VisualizationManager* getManager()
   {
@@ -401,6 +404,8 @@ protected:
 
   /// Indicates if the toolbar should be visible outside of fullscreen mode.
   bool toolbar_visible_;
+
+  bool embed_mode_;
 };
 
 } // namespace rviz

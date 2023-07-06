@@ -122,6 +122,7 @@ VisualizationFrame::VisualizationFrame(QWidget* parent)
   , post_load_timer_(new QTimer(this))
   , frame_count_(0)
   , toolbar_visible_(true)
+  , embed_mode_(false)
 {
   panel_factory_ = new PanelFactory();
 
@@ -238,7 +239,12 @@ void VisualizationFrame::setSplashPath(const QString& splash_path)
   splash_path_ = splash_path;
 }
 
-void VisualizationFrame::initialize(const QString& display_config_file, bool embed_mode)
+void VisualizationFrame::setEmbedMode(bool embed)
+{
+  embed_mode_ = embed;
+}
+
+void VisualizationFrame::initialize(const QString& display_config_file)
 {
   initConfigs();
 
@@ -320,7 +326,7 @@ void VisualizationFrame::initialize(const QString& display_config_file, bool emb
   // Periodically process events for the splash screen.
   QCoreApplication::processEvents();
 
-  if (embed_mode) {
+  if (embed_mode_) {
     hide_left_dock_button_->hide();
     hide_right_dock_button_->hide();
     menuBar()->hide();
@@ -753,7 +759,7 @@ bool VisualizationFrame::loadDisplayConfigHelper(const std::string& full_path, c
   loading_ = true;
 
   std::unique_ptr<LoadingDialog> dialog;
-  if (initialized_)
+  if (initialized_ && !embed_mode_)
   {
     dialog.reset(new LoadingDialog(this));
     dialog->show();

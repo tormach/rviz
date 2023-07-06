@@ -216,7 +216,6 @@ bool VisualizerApp::init(int argc, char** argv)
     if (vm.count("no-stereo"))
       RenderSystem::forceNoStereo();
 
-    embed_mode_ = vm.count("embed-mode") > 0;
 
     frame_ = new VisualizationFrame();
     if (!help_path.empty())
@@ -227,7 +226,10 @@ bool VisualizerApp::init(int argc, char** argv)
     if (vm.count("splash-screen"))
       frame_->setSplashPath(QString::fromStdString(splash_path));
 
-    frame_->initialize(QString::fromStdString(display_config), embed_mode_);
+    embed_mode_ = vm.count("embed-mode") > 0;
+    frame_->setEmbedMode(embed_mode_);
+
+    frame_->initialize(QString::fromStdString(display_config));
 
     if (!fixed_frame.empty())
       frame_->getManager()->setFixedFrame(QString::fromStdString(fixed_frame));
