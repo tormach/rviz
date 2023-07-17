@@ -250,11 +250,11 @@ bool VisualizerApp::init(int argc, char** argv)
     save_config_service_ =
         private_nh.advertiseService("save_config", &VisualizerApp::saveConfigCallback, this);
     set_display_property_service_ =
-        private_nh.advertiseService("set_display_property", &VisualizerApp::setDisplayPropertyCallback, this);
+        private_nh.advertiseService("set_display_properties", &VisualizerApp::setDisplayPropertyCallback, this);
     set_view_property_service_ =
-        private_nh.advertiseService("set_view_property", &VisualizerApp::setViewPropertyCallback, this);
+        private_nh.advertiseService("set_view_properties", &VisualizerApp::setViewPropertyCallback, this);
     set_global_option_service_ =
-        private_nh.advertiseService("set_global_option", &VisualizerApp::setGlobalOptionCallback, this);
+        private_nh.advertiseService("set_global_options", &VisualizerApp::setGlobalOptionCallback, this);
     set_current_tool_service_ =
         private_nh.advertiseService("set_current_tool", &VisualizerApp::setCurrentToolCallback, this);
     set_input_enabled_service_ =
@@ -368,16 +368,16 @@ bool VisualizerApp::saveConfigCallback(rviz::SendFilePathRequest& req, rviz::Sen
   return true;
 }
 
-bool VisualizerApp::setPropertyFromRequest(rviz::SetPropertyRequest& req, Property *property)
+bool VisualizerApp::setPropertyFromRequest(const rviz::ObjectProperty& req, Property *property)
 {
   switch (req.value_type) {
-    case rviz::SetPropertyRequest::STRING_VALUE:
+    case rviz::ObjectProperty::STRING_VALUE:
       property->setValue(QString::fromStdString(req.string_value));
       return true;
-    case rviz::SetPropertyRequest::FLOAT_VALUE:
+    case rviz::ObjectProperty::FLOAT_VALUE:
       property->setValue(req.float_value);
       return true;
-    case rviz::SetPropertyRequest::BOOL_VALUE:
+    case rviz::ObjectProperty::BOOL_VALUE:
       property->setValue(static_cast<bool>(req.bool_value));
       return true;
   }
@@ -398,7 +398,7 @@ Property *VisualizerApp::findProperty(const QString& key, Property *property)
   return property;
 }
 
-bool VisualizerApp::setDisplayPropertyCallback(rviz::SetPropertyRequest& req, rviz::SetPropertyResponse& res)
+bool VisualizerApp::setDisplayPropertyCallback(rviz::SetPropertiesRequest& req, rviz::SetPropertiesResponse& res)
 {
   auto group = frame_->getManager()->getRootDisplayGroup();
   for (int i = group->numDisplays() - 1; i >= 0; --i)
@@ -409,28 +409,36 @@ bool VisualizerApp::setDisplayPropertyCallback(rviz::SetPropertyRequest& req, rv
       continue;
     }
 
-    if (!req.key.empty())
+    for (const rviz::ObjectProperty &req_property : req.properties)
     {
-      property = findProperty(QString::fromStdString(req.key), property);
-      if (!property)
+      Property *display_property = property;
+      if (!req_property.key.empty())
       {
-        ROS_ERROR_STREAM("Failed to find property " << req.key << " in display " << req.object_name);
+        display_property = findProperty(QString::fromStdString(req_property.key), property);
+      }
+      if (!display_property)
+      {
+        res.success = false;
+        ROS_ERROR_STREAM("Failed to find property " << req_property.key << " in display " << req.object_name);
+        return true;
+      }
+      res.success = setPropertyFromRequest(req_property, display_property);
+      if (!res.success)
+      {
+        ROS_ERROR_STREAM("Failed to set property " << req_property.key << " in display " << req.object_name);
         return true;
       }
     }
-    res.success = setPropertyFromRequest(req, property);
-    if (!res.success)
-    {
-      ROS_ERROR_STREAM("Failed to set property " << req.key << " in display " << req.object_name);
-    }
+
     return true;
   }
 
+  res.success = false;
   ROS_ERROR_STREAM("Failed to find display " << req.object_name);
   return true;
 }
 
-bool VisualizerApp::setViewPropertyCallback(rviz::SetPropertyRequest& req, rviz::SetPropertyResponse& res)
+bool VisualizerApp::setViewPropertyCallback(rviz::SetPropertiesRequest& req, rviz::SetPropertiesResponse& res)
 {
   Property *property;
   if (req.object_name.empty())
@@ -451,43 +459,57 @@ bool VisualizerApp::setViewPropertyCallback(rviz::SetPropertyRequest& req, rviz:
     }
     if (!found)
     {
+      res.success = false;
       ROS_ERROR_STREAM("Failed to find view " << req.object_name);
       return true;
     }
   }
 
-  if (!req.key.empty())
+  for (const rviz::ObjectProperty &req_property : req.properties)
   {
-    property = findProperty(QString::fromStdString(req.key), property);
-    if (!property)
+    Property *view_property = property;
+    if (!req_property.key.empty())
     {
-      ROS_ERROR_STREAM("Failed to find property " << req.key << " in view " << req.object_name);
+      view_property = findProperty(QString::fromStdString(req_property.key), property);
+    }
+    if (!view_property)
+    {
+      res.success = false;
+      ROS_ERROR_STREAM("Failed to find property " << req_property.key << " in view " << req.object_name);
+      return true;
+    }
+    res.success = setPropertyFromRequest(req_property, view_property);
+    if (!res.success)
+    {
+      ROS_ERROR_STREAM("Failed to set property " << req_property.key << " in view " << req.object_name);
       return true;
     }
   }
-  res.success = setPropertyFromRequest(req, property);
-  if (!res.success)
-  {
-    ROS_ERROR_STREAM("Failed to set property " << req.key << " in view " << req.object_name);
-  }
+
   return true;
 }
 
-bool VisualizerApp::setGlobalOptionCallback(rviz::SetPropertyRequest& req, rviz::SetPropertyResponse& res)
+bool VisualizerApp::setGlobalOptionCallback(rviz::SetPropertiesRequest& req, rviz::SetPropertiesResponse& res)
 {
   auto group = frame_->getManager()->getRootDisplayGroup()->subProp("Global Options");
 
-  Property *property = group->subProp(QString::fromStdString(req.key));
-  if (!property)
+  for (rviz::ObjectProperty &req_property : req.properties)
   {
-    ROS_ERROR_STREAM("Failed to find property " << req.key << " in global options");
-    return true;
+    Property *property = group->subProp(QString::fromStdString(req_property.key));
+    if (!property)
+    {
+      res.success = false;
+      ROS_ERROR_STREAM("Failed to find property " << req_property.key << " in global options");
+      return true;
+    }
+    res.success = setPropertyFromRequest(req_property, property);
+    if (!res.success)
+    {
+      ROS_ERROR_STREAM("Failed to set property " << req_property.key << " in global options");
+      return true;
+    }
   }
-  res.success = setPropertyFromRequest(req, property);
-  if (!res.success)
-  {
-    ROS_ERROR_STREAM("Failed to set property " << req.key << " in global options");
-  }
+
   return true;
 }
 

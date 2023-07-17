@@ -1,0 +1,4 @@
+string object_name # name of display or view containing the parameter
+ObjectProperty[] properties # list of properties to set
+---
+bool success

@@ -35,7 +35,7 @@
 #include <ros/ros.h>
 #include <rviz/rviz_export.h>
 #include <rviz/SendFilePath.h>
-#include <rviz/SetProperty.h>
+#include <rviz/SetProperties.h>
 #include <rviz/SetCurrentTool.h>
 #include <std_srvs/SetBool.h>
 #include <rviz/properties/property.h>
@@ -72,11 +72,11 @@ private:
   bool loadConfigCallback(rviz::SendFilePathRequest& req, rviz::SendFilePathResponse& res);
   bool loadConfigDiscardingCallback(rviz::SendFilePathRequest& req, rviz::SendFilePathResponse& res);
   bool saveConfigCallback(rviz::SendFilePathRequest& req, rviz::SendFilePathResponse& res);
-  bool setDisplayPropertyCallback(rviz::SetPropertyRequest& req, rviz::SetPropertyResponse& res);
-  bool setViewPropertyCallback(rviz::SetPropertyRequest& req, rviz::SetPropertyResponse& res);
-  bool setGlobalOptionCallback(rviz::SetPropertyRequest& req, rviz::SetPropertyResponse& res);
+  bool setDisplayPropertyCallback(rviz::SetPropertiesRequest& req, rviz::SetPropertiesResponse& res);
+  bool setViewPropertyCallback(rviz::SetPropertiesRequest& req, rviz::SetPropertiesResponse& res);
+  bool setGlobalOptionCallback(rviz::SetPropertiesRequest& req, rviz::SetPropertiesResponse& res);
   bool setCurrentToolCallback(rviz::SetCurrentToolRequest& req, rviz::SetCurrentToolResponse& res);
-  bool setPropertyFromRequest(rviz::SetPropertyRequest& req, Property *property);
+  bool setPropertyFromRequest(const rviz::ObjectProperty& req, Property *property);
   bool setInputEnabledCallback(std_srvs::SetBoolRequest& req, std_srvs::SetBoolResponse& res);
   Property *findProperty(const QString& key, Property *property);
 

@@ -1,4 +1,3 @@
-string object_name # name of display or view containing the parameter
 string key # key of the parameter to set
 
 uint8 STRING_VALUE = 0
@@ -10,5 +9,3 @@ uint8 value_type # type of the parameter value
 string string_value
 float32 float_value
 bool bool_value
----
-bool success

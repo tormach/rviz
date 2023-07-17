@@ -163,10 +163,15 @@ set(rviz_QT_VERSION ${QTVERSION})
 # There is a matching instance of this in the plugin_description.xml.
 set(rviz_DEFAULT_PLUGIN_LIBRARY_TARGET_NAME rviz_default_plugin)
 
+add_message_files(
+  FILES
+  ObjectProperty.msg
+)
+
 add_service_files(
   FILES
   SendFilePath.srv
-  SetProperty.srv
+  SetProperties.srv
   SetCurrentTool.srv
 )
 
