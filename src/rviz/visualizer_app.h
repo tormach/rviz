@@ -77,9 +77,9 @@ private:
   bool setViewPropertyCallback(rviz::SetPropertiesRequest& req, rviz::SetPropertiesResponse& res);
   bool setGlobalOptionCallback(rviz::SetPropertiesRequest& req, rviz::SetPropertiesResponse& res);
   bool setCurrentToolCallback(rviz::SetCurrentToolRequest& req, rviz::SetCurrentToolResponse& res);
-  bool setPropertyFromRequest(const rviz::ObjectProperty& req, Property *property);
+  bool setPropertyFromRequest(const rviz::ObjectProperty& req, Property* property);
   bool setInputEnabledCallback(std_srvs::SetBoolRequest& req, std_srvs::SetBoolResponse& res);
-  Property *findProperty(const QString& key, Property *property);
+  Property* findProperty(const QString& key, Property* property);
 
   bool eventFilter(QObject* watched, QEvent* event) override;
 

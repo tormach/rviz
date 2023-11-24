@@ -68,7 +68,7 @@
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 
-rviz::VisualizerApp *instance_ = nullptr; // for SIGINT handler
+rviz::VisualizerApp* instance_ = nullptr; // for SIGINT handler
 
 namespace rviz
 {
@@ -249,10 +249,10 @@ bool VisualizerApp::init(int argc, char** argv)
         "load_config_discarding_changes", &VisualizerApp::loadConfigDiscardingCallback, this);
     save_config_service_ =
         private_nh.advertiseService("save_config", &VisualizerApp::saveConfigCallback, this);
-    set_display_property_service_ =
-        private_nh.advertiseService("set_display_properties", &VisualizerApp::setDisplayPropertyCallback, this);
-    set_view_property_service_ =
-        private_nh.advertiseService("set_view_properties", &VisualizerApp::setViewPropertyCallback, this);
+    set_display_property_service_ = private_nh.advertiseService(
+        "set_display_properties", &VisualizerApp::setDisplayPropertyCallback, this);
+    set_view_property_service_ = private_nh.advertiseService(
+        "set_view_properties", &VisualizerApp::setViewPropertyCallback, this);
     set_global_option_service_ =
         private_nh.advertiseService("set_global_options", &VisualizerApp::setGlobalOptionCallback, this);
     set_current_tool_service_ =
@@ -371,23 +371,24 @@ bool VisualizerApp::saveConfigCallback(rviz::SendFilePathRequest& req, rviz::Sen
   return true;
 }
 
-bool VisualizerApp::setPropertyFromRequest(const rviz::ObjectProperty& req, Property *property)
+bool VisualizerApp::setPropertyFromRequest(const rviz::ObjectProperty& req, Property* property)
 {
-  switch (req.value_type) {
-    case rviz::ObjectProperty::STRING_VALUE:
-      property->setValue(QString::fromStdString(req.string_value));
-      return true;
-    case rviz::ObjectProperty::FLOAT_VALUE:
-      property->setValue(req.float_value);
-      return true;
-    case rviz::ObjectProperty::BOOL_VALUE:
-      property->setValue(static_cast<bool>(req.bool_value));
-      return true;
+  switch (req.value_type)
+  {
+  case rviz::ObjectProperty::STRING_VALUE:
+    property->setValue(QString::fromStdString(req.string_value));
+    return true;
+  case rviz::ObjectProperty::FLOAT_VALUE:
+    property->setValue(req.float_value);
+    return true;
+  case rviz::ObjectProperty::BOOL_VALUE:
+    property->setValue(static_cast<bool>(req.bool_value));
+    return true;
   }
   return false;
 }
 
-Property *VisualizerApp::findProperty(const QString& key, Property *property)
+Property* VisualizerApp::findProperty(const QString& key, Property* property)
 {
   auto keys = key.split('/');
   for (const auto& k : keys)
@@ -401,7 +402,8 @@ Property *VisualizerApp::findProperty(const QString& key, Property *property)
   return property;
 }
 
-bool VisualizerApp::setDisplayPropertyCallback(rviz::SetPropertiesRequest& req, rviz::SetPropertiesResponse& res)
+bool VisualizerApp::setDisplayPropertyCallback(rviz::SetPropertiesRequest& req,
+                                               rviz::SetPropertiesResponse& res)
 {
   auto group = frame_->getManager()->getRootDisplayGroup();
   for (int i = group->numDisplays() - 1; i >= 0; --i)
@@ -412,9 +414,9 @@ bool VisualizerApp::setDisplayPropertyCallback(rviz::SetPropertiesRequest& req, 
       continue;
     }
 
-    for (const rviz::ObjectProperty &req_property : req.properties)
+    for (const rviz::ObjectProperty& req_property : req.properties)
     {
-      Property *display_property = property;
+      Property* display_property = property;
       if (!req_property.key.empty())
       {
         display_property = findProperty(QString::fromStdString(req_property.key), property);
@@ -422,13 +424,15 @@ bool VisualizerApp::setDisplayPropertyCallback(rviz::SetPropertiesRequest& req, 
       if (!display_property)
       {
         res.success = false;
-        ROS_ERROR_STREAM("Failed to find property " << req_property.key << " in display " << req.object_name);
+        ROS_ERROR_STREAM("Failed to find property " << req_property.key << " in display "
+                                                    << req.object_name);
         return true;
       }
       res.success = setPropertyFromRequest(req_property, display_property);
       if (!res.success)
       {
-        ROS_ERROR_STREAM("Failed to set property " << req_property.key << " in display " << req.object_name);
+        ROS_ERROR_STREAM("Failed to set property " << req_property.key << " in display "
+                                                   << req.object_name);
         return true;
       }
     }
@@ -441,9 +445,10 @@ bool VisualizerApp::setDisplayPropertyCallback(rviz::SetPropertiesRequest& req, 
   return true;
 }
 
-bool VisualizerApp::setViewPropertyCallback(rviz::SetPropertiesRequest& req, rviz::SetPropertiesResponse& res)
+bool VisualizerApp::setViewPropertyCallback(rviz::SetPropertiesRequest& req,
+                                            rviz::SetPropertiesResponse& res)
 {
-  Property *property;
+  Property* property;
   if (req.object_name.empty())
   {
     property = frame_->getManager()->getViewManager()->getCurrent();
@@ -468,9 +473,9 @@ bool VisualizerApp::setViewPropertyCallback(rviz::SetPropertiesRequest& req, rvi
     }
   }
 
-  for (const rviz::ObjectProperty &req_property : req.properties)
+  for (const rviz::ObjectProperty& req_property : req.properties)
   {
-    Property *view_property = property;
+    Property* view_property = property;
     if (!req_property.key.empty())
     {
       view_property = findProperty(QString::fromStdString(req_property.key), property);
@@ -492,13 +497,14 @@ bool VisualizerApp::setViewPropertyCallback(rviz::SetPropertiesRequest& req, rvi
   return true;
 }
 
-bool VisualizerApp::setGlobalOptionCallback(rviz::SetPropertiesRequest& req, rviz::SetPropertiesResponse& res)
+bool VisualizerApp::setGlobalOptionCallback(rviz::SetPropertiesRequest& req,
+                                            rviz::SetPropertiesResponse& res)
 {
   auto group = frame_->getManager()->getRootDisplayGroup()->subProp("Global Options");
 
-  for (rviz::ObjectProperty &req_property : req.properties)
+  for (rviz::ObjectProperty& req_property : req.properties)
   {
-    Property *property = group->subProp(QString::fromStdString(req_property.key));
+    Property* property = group->subProp(QString::fromStdString(req_property.key));
     if (!property)
     {
       res.success = false;
@@ -516,7 +522,8 @@ bool VisualizerApp::setGlobalOptionCallback(rviz::SetPropertiesRequest& req, rvi
   return true;
 }
 
-bool VisualizerApp::setCurrentToolCallback(rviz::SetCurrentToolRequest& req, rviz::SetCurrentToolResponse& res)
+bool VisualizerApp::setCurrentToolCallback(rviz::SetCurrentToolRequest& req,
+                                           rviz::SetCurrentToolResponse& res)
 {
   auto manager = frame_->getManager()->getToolManager();
   for (int i = 0; i < manager->numTools(); ++i)
@@ -535,7 +542,8 @@ bool VisualizerApp::setCurrentToolCallback(rviz::SetCurrentToolRequest& req, rvi
   return true;
 }
 
-bool VisualizerApp::setInputEnabledCallback(std_srvs::SetBool::Request& req, std_srvs::SetBool::Response& res)
+bool VisualizerApp::setInputEnabledCallback(std_srvs::SetBool::Request& req,
+                                            std_srvs::SetBool::Response& res)
 {
   frame_->setEnabled(req.data);
   res.success = true;

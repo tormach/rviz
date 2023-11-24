@@ -326,7 +326,8 @@ void VisualizationFrame::initialize(const QString& display_config_file)
   // Periodically process events for the splash screen.
   QCoreApplication::processEvents();
 
-  if (embed_mode_) {
+  if (embed_mode_)
+  {
     hide_left_dock_button_->hide();
     hide_right_dock_button_->hide();
     menuBar()->hide();
