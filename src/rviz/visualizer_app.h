@@ -38,6 +38,7 @@
 #include <rviz/SetProperties.h>
 #include <rviz/SetCurrentTool.h>
 #include <std_srvs/SetBool.h>
+#include <rviz/KeyEvent.h>
 #include <rviz/properties/property.h>
 #endif
 
@@ -80,6 +81,8 @@ private:
   bool setInputEnabledCallback(std_srvs::SetBoolRequest& req, std_srvs::SetBoolResponse& res);
   Property *findProperty(const QString& key, Property *property);
 
+  bool eventFilter(QObject* watched, QEvent* event) override;
+
   QTimer* continue_timer_;
   VisualizationFrame* frame_;
   bool embed_mode_;
@@ -93,6 +96,7 @@ private:
   ros::ServiceServer set_global_option_service_;
   ros::ServiceServer set_current_tool_service_;
   ros::Publisher win_id_publisher_;
+  ros::Publisher key_event_publisher_;
   ros::ServiceServer set_input_enabled_service_;
 };
 

@@ -267,6 +267,9 @@ bool VisualizerApp::init(int argc, char** argv)
       std_msgs::UInt32 win_id;
       win_id.data = frame_->winId();
       win_id_publisher_.publish(win_id);
+
+      key_event_publisher_ = private_nh.advertise<rviz::KeyEvent>("key_event", 10, false);
+      QCoreApplication::instance()->installEventFilter(this);
     }
 
 #if CATCH_EXCEPTIONS
@@ -537,6 +540,27 @@ bool VisualizerApp::setInputEnabledCallback(std_srvs::SetBool::Request& req, std
   frame_->setEnabled(req.data);
   res.success = true;
   return true;
+}
+
+bool VisualizerApp::eventFilter(QObject* watched, QEvent* event)
+{
+  if ((event->type() == QEvent::KeyPress) || (event->type() == QEvent::KeyRelease))
+  {
+    QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
+    keyEvent->accept();
+    if (!keyEvent->isAutoRepeat())
+    {
+      ROS_INFO_STREAM("Ignoring key event " << keyEvent->key() << " " << keyEvent->modifiers() << " "
+                                            << (event->type() == QEvent::KeyPress));
+      rviz::KeyEvent key_event_msg;
+      key_event_msg.key = static_cast<int32_t>(keyEvent->key());
+      key_event_msg.modifiers = static_cast<int32_t>(keyEvent->modifiers());
+      key_event_msg.event_type = static_cast<int32_t>(event->type());
+      key_event_publisher_.publish(key_event_msg);
+    }
+    return true;
+  }
+  return QObject::eventFilter(watched, event);
 }
 
 } // namespace rviz
